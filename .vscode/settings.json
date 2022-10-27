@@ -1,0 +1,26 @@
+{
+    "files.associations": {
+        "*.lua": "glua",
+        "kernel.h": "c",
+        "libpad.h": "c",
+        "teapot.h": "c",
+        "math3d.h": "c",
+        "dma_tags.h": "c",
+        "gif_tags.h": "c",
+        "compare": "c",
+        "type_traits": "c",
+        "render.h": "c",
+        "stdbool.h": "c",
+        "gs_psm.h": "c",
+        "graph.h": "c",
+        "draw.h": "c",
+        "packet.h": "c",
+        "game.h": "c",
+        "dma.h": "c",
+        "draw3d.h": "c",
+        "draw_dithering.h": "c",
+        "tamtypes.h": "c",
+        "pad.h": "c",
+        "errno.h": "c"
+    }
+}
