@@ -10,6 +10,9 @@
 #include "game.h"
 #include "render.h"
 
+#include <stdio.h>
+#include <memory.h>
+
 /*
 	model_t cube_model;
 
@@ -84,25 +87,16 @@ void init_gs(INIT_GS_PARAMS)
 void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 {
 	packet_t *packet = packet_init(16,PACKET_NORMAL);
-
-	// This is our generic qword pointer.
 	qword_t *q = packet->data;
 
-	// This will setup a default drawing environment.
 	q = draw_setup_environment(q,0,frame,z);
-
-	// Now reset the primitive origin to 2048-width/2,2048-height/2.
 	q = draw_primitive_xyoffset(q,0,(2048-320),(2048-256));
-
-	// Finish setting up the environment.
 	q = draw_finish(q);
 
-	// Now send the packet, no need to wait since it's the first.
 	dma_channel_send_normal(DMA_CHANNEL_GIF,packet->data,q - packet->data, 0, 0);
 	dma_wait_fast();
 
 	packet_free(packet);
-
 }
 
 qword_t *draw_model(DRAW_MODEL_PARAMS) {
@@ -120,16 +114,16 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	create_world_view(world_view, game->camera_position, game->camera_rotation);
 	create_local_screen(local_screen, local_world, world_view, game->view_screen);
 	
-	calculate_vertices(game->shared_verticies, model->vertex_count, model->vertices, local_screen);
+	calculate_vertices(game->context->shared_verticies, model->vertex_count, model->vertices, local_screen);
 
-	draw_convert_xyz(game->xyz, 2048, 2048, 32, model->vertex_count, (vertex_f_t*)game->shared_verticies);
-	draw_convert_rgbq(game->rgbaq, model->vertex_count, (vertex_f_t*)game->shared_verticies, (color_f_t*)model->colors, model->color.a);
+	draw_convert_xyz(game->context->xyz, 2048, 2048, 32, model->vertex_count, (vertex_f_t*)game->context->shared_verticies);
+	draw_convert_rgbq(game->context->rgbaq, model->vertex_count, (vertex_f_t*)game->context->shared_verticies, (color_f_t*)model->colors, model->color.a);
 
 	q = draw_prim_start(q, 0, &model->prim_data, &model->color);
 
 	for(int i = 0; i < model->point_count; i++) {
-		q->dw[0] = game->rgbaq[model->points[i]].rgbaq;
-		q->dw[1] = game->xyz[model->points[i]].xyz;
+		q->dw[0] = game->context->rgbaq[model->points[i]].rgbaq;
+		q->dw[1] = game->context->xyz[model->points[i]].xyz;
 		q++;
 	}
 
@@ -139,7 +133,92 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 
 	return q;
 }
+void init_render_context(INIT_RENDER_CONTEXT) {
 
+	//dma_wait_fast();
+	context->context = 0;
+	
+	context->packets[0] = packet_init(MAX_VERTICES, PACKET_NORMAL);
+	context->packets[1] = packet_init(MAX_VERTICES, PACKET_NORMAL);
+	context->flip = packet_init(3, PACKET_UCAB);
+	
+	context->shared_verticies = ALIGN_VERT_128(VECTOR);
+	context->shared_normals = ALIGN_VERT_128(VECTOR);
+	context->shared_lights = ALIGN_VERT_128(VECTOR);
+	context->shared_colors = ALIGN_VERT_128(VECTOR);
+	
+	context->xyz = ALIGN_VERT_128(xyz_t);
+	context->rgbaq = ALIGN_VERT_128(color_t);
+
+	//memset(context->view_screen, 0, sizeof(MATRIX));
+}
+
+void end_render_context(END_RENDER_CONTEXT) {
+	packet_free(context->flip);
+	packet_free(context->packets[0]);
+	packet_free(context->packets[1]);
+
+	free(context->shared_colors);
+	free(context->shared_lights);
+	free(context->shared_normals);
+	free(context->shared_verticies);
+}
+
+qword_t *begin_render(BEGIN_RENDER_PARAMS) {
+	qword_t *q;
+	qword_t *dmatag;
+
+	game->context->current = game->context->packets[game->context->context];
+	dmatag = game->context->current->data;
+
+	q = dmatag;
+	q++;
+
+	printf("DDT\n");
+	q = draw_disable_tests(q,0,z);
+	printf("DDC");
+	q = draw_clear(q,0,2048.0f-320.0f,2048.0f-256.0f,frame->width,frame->height,0x00,0x00,0x00);
+	printf("DET");
+	q = draw_enable_tests(q,0, z);
+
+	DMATAG_CNT(dmatag,q-dmatag - 1,0,0,0);
+
+	return q;
+}
+
+qword_t *end_render(END_RENDER_PARAMS) {
+	qword_t *dmatag;
+	dmatag = q; // scuffed
+	
+	q = dmatag;
+	q++;
+
+	q = draw_finish(q);
+	DMATAG_END(dmatag,q-dmatag-1,0,0,0);
+
+	dma_wait_fast();
+	dma_channel_send_chain(DMA_CHANNEL_GIF, game->context->current->data, q - game->context->current->data, 0, 0);
+
+	graph_wait_vsync();
+
+	draw_wait_finish();
+	graph_set_framebuffer_filtered(frame[game->context->context].address,frame[game->context->context].width,frame[game->context->context].psm,0,0);
+
+	game->context->context ^= 1;
+
+	q = game->context->flip->data;
+	q = draw_framebuffer(q,0, frame);
+	q = draw_finish(q);
+
+	dma_wait_fast();
+	dma_channel_send_normal_ucab(DMA_CHANNEL_GIF,game->context->flip->data, q - game->context->flip->data, 0);
+	
+	draw_wait_finish();
+
+	return q;
+}
+
+/*
 int render(RENDER_PARAMS)
 {
 	int context = 0;
@@ -148,18 +227,18 @@ int render(RENDER_PARAMS)
 	//color_t color;
 
 	// The data packets for double buffering dma sends.
-	packet_t *packets[2];
-	packet_t *current;
-	
-	packets[0] = packet_init(MAX_VERTICES,PACKET_NORMAL);
-	packets[1] = packet_init(MAX_VERTICES,PACKET_NORMAL);
+	//packet_t *packets[2];
+	//packet_t *current;
+	//
+	//packets[0] = packet_init(MAX_VERTICES,PACKET_NORMAL);
+	//packets[1] = packet_init(MAX_VERTICES,PACKET_NORMAL);
 	
 	packet_t *flip = packet_init(3,PACKET_UCAB);
 
 	create_view_screen(game->view_screen, graph_aspect_ratio(), -3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.00f);
 
 	dma_wait_fast();
-
+	
 	for (;;)
 	{	
 		game->current_time = clock();
@@ -181,8 +260,7 @@ int render(RENDER_PARAMS)
 
 		DMATAG_CNT(dmatag,q-dmatag - 1,0,0,0);
 
-        if(game->on_render)
-            game->on_render(game, q, dmatag, packets, current);
+
 
 		dmatag = q;
 		q++;
@@ -221,3 +299,4 @@ int render(RENDER_PARAMS)
 
 	return 0;
 }
+*/ 

@@ -24,22 +24,15 @@
 
 #include <libpad.h>
 
+#include <packet.h>
+
 #include "game.h"
 #include "render.h"
 
-void load_modules() {
-    int ret = SifLoadModule("rom0:SIO2MAN", 0, NULL);
-    if (ret < 0) {
-        printf("SifLoadModule sio failed: %d\n", ret);
-        SleepThread();
-    }
+#include "cube.h"
+#include "teapot.h"
 
-    ret = SifLoadModule("rom0:PADMAN", 0, NULL);
-    if (ret < 0) {
-        printf("SifLoadModule pad failed: %d\n", ret);
-        SleepThread();
-    }	
-}
+#include <graph.h>
 
 void init_gg(INIT_GG_PARAMS) {
 	
@@ -54,56 +47,119 @@ void init_gg(INIT_GG_PARAMS) {
 	game->camera_rotation[3] = 1.00f;
 
 	game->last_time = clock();
-
-	// TROLL
-
-	memset(game->view_screen, 0, sizeof(game->view_screen));
-
-	game->shared_verticies = ALIGN_VERT_128(VECTOR);
-	game->shared_normals = ALIGN_VERT_128(VECTOR);
-	game->shared_lights = ALIGN_VERT_128(VECTOR);
-	game->shared_colors = ALIGN_VERT_128(VECTOR);
-
-	game->xyz = ALIGN_VERT_128(xyz_t);
-	game->rgbaq = ALIGN_VERT_128(color_t);
-
-	memset(game->pad_buffer, 0, sizeof(char) * 256);
 	
 	// gs shit
 	dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 
 	init_gs(&game->frame_buffer, &game->z_buffer);
-	init_drawing_environment(game, &game->frame_buffer, &game->z_buffer);
+	init_drawing_environment(&game->frame_buffer, &game->z_buffer);
+	
+	create_view_screen(game->view_screen, graph_aspect_ratio(), -3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.00f);
 }
 
-void free_gg(FREE_GG_PARAMS) {
-	free(game->shared_colors);
-	free(game->shared_lights);
-	free(game->shared_normals);
-	free(game->shared_verticies);
-}
+void end_gg(FREE_GG_PARAMS) {
+	packet_free(game->context->flip);
+	packet_free(game->context->packets[0]);
+	packet_free(game->context->packets[1]);
 
-void on_render(ON_RENDER_PARAMS) {
-	static struct padButtonStatus status;
-	padRead(0, 0, &status);
-
-	printf("%i\n", status.btns);
+	free(game->context->shared_colors);
+	free(game->context->shared_lights);
+	free(game->context->shared_normals);
+	free(game->context->shared_verticies);
 }
 
 int main(int argc, char *argv[]) {
-	SifInitRpc(0);
-
-	game_globals_t game;
+	game_globals_t game;		
 	init_gg(&game); // lol
+
+	render_context_t context;
+	init_render_context(&context);
+	game.context = &context;
+
+	model_t cube_model;
+
+	cube_model.point_count = points_count_cube;
+	cube_model.vertex_count = vertex_count_cube;
+
+	cube_model.points = points_cube;
+	cube_model.vertices = vertices_cube;
+	cube_model.colors = colours_cube;
+
+	cube_model.prim_data.type = PRIM_TRIANGLE;
+	cube_model.prim_data.shading = PRIM_SHADE_GOURAUD;
+	cube_model.prim_data.mapping = DRAW_DISABLE;
+	cube_model.prim_data.fogging = DRAW_DISABLE;
+	cube_model.prim_data.blending = DRAW_DISABLE;
+	cube_model.prim_data.antialiasing = DRAW_ENABLE;
+	cube_model.prim_data.mapping_type = PRIM_MAP_ST;
+	cube_model.prim_data.colorfix = PRIM_UNFIXED;
+
+	cube_model.color.r = 0x80;
+	cube_model.color.g = 0x80;
+	cube_model.color.b = 0x80;
+	cube_model.color.a = 0x80;
+	cube_model.color.q = 1.0f;
+
+	model_t teapot_model;
+
+	teapot_model.point_count = points_count_teapot;
+	teapot_model.vertex_count = vertex_count_teapot;
+
+	teapot_model.points = points_teapot;
+	teapot_model.vertices = vertices_teapot;
+	teapot_model.colors = colours_teapot;
+
+	teapot_model.prim_data.type = PRIM_LINE_STRIP;
+	teapot_model.prim_data.shading = PRIM_SHADE_GOURAUD;
+	teapot_model.prim_data.mapping = DRAW_DISABLE;
+	teapot_model.prim_data.fogging = DRAW_DISABLE;
+	teapot_model.prim_data.blending = DRAW_DISABLE;
+	teapot_model.prim_data.antialiasing = DRAW_ENABLE;
+	teapot_model.prim_data.mapping_type = PRIM_MAP_ST;
+	teapot_model.prim_data.colorfix = PRIM_UNFIXED;
+
+	teapot_model.color.r = 0x0;
+	teapot_model.color.g = 0x80;
+	teapot_model.color.b = 0x80;
+	teapot_model.color.a = 0x80;
+	teapot_model.color.q = 1.0f;
+
+	VECTOR pos = {0,0,0,0};
+	VECTOR rot = {0,0,0,0};
+
+	VECTOR pos2 = {15,15,15,0};
+
 	
-	game.on_render = &on_render; 
+	VECTOR postest = {0,0,0,0};
+	VECTOR rottest = {0,0,0,0};
 
-	render(&game, &game.frame_buffer,&game.z_buffer);
+	VECTOR pos2test = {15,15,15,0};
 
-	free_gg(&game);
+	for(;;) {
+		qword_t *q;
 
-	padEnd();
+		q = begin_render(&game, &game.frame_buffer, &game.z_buffer);
+		q = draw_model(&game, &cube_model, q, pos, rot);
+		q = end_render(q, &game, &game.frame_buffer, &game.z_buffer);
+
+		//game->current_time = clock();
+		//game->delta_time = (game->current_time - game->last_time) / 1000.0f;
+//
+		//qword_t *q;
+		//// really scuffed render code
+//
+		//q = begin_render(&game, &game.frame_buffer, &game.z_buffer);
+//
+		//q = draw_model(&game, &cube_model, q, pos, rot);
+//
+		//q = draw_model(&game, &teapot_model, q, pos2, rot);
+//
+		//q = end_render(q, &game, &game.frame_buffer, &game.z_buffer);
+	}
+
+	end_render_context(&context);
+	end_gg(&game);
 
 	SleepThread();
 	

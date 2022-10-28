@@ -6,6 +6,7 @@
 # Licenced under Academic Free License version 2.0
 # Review ps2sdk README & LICENSE files for further details.
 
+EE_CFLAGS = -g
 EE_BIN = game.elf
 EE_OBJS = game.o render.o pad.o
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad
