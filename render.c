@@ -1,17 +1,8 @@
-#include <packet.h>
-#include <dma_tags.h>
-#include <gif_tags.h>
-#include <gs_psm.h>
-#include <dma.h>
-#include <graph.h>
-#include <draw.h>
-#include <draw3d.h>
+#include "pch.h"
 
+#include "config.h"
 #include "game.h"
 #include "render.h"
-
-#include <stdio.h>
-#include <memory.h>
 
 /*
 	model_t cube_model;
@@ -66,8 +57,8 @@
 void init_gs(INIT_GS_PARAMS)
 {
 	// Define a 32-bit 640x512 framebuffer.
-	frame->width = 640;
-	frame->height = 512;
+	frame->width = FB_WIDTH;
+	frame->height = FB_HEIGHT;
 	frame->mask = 0;
 	frame->psm = GS_PSM_32;
 	frame->address = graph_vram_allocate(frame->width,frame->height, frame->psm, GRAPH_ALIGN_PAGE);
@@ -114,16 +105,16 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	create_world_view(world_view, game->camera_position, game->camera_rotation);
 	create_local_screen(local_screen, local_world, world_view, game->view_screen);
 	
-	calculate_vertices(game->context->shared_verticies, model->vertex_count, model->vertices, local_screen);
+	calculate_vertices(game->context.shared_verticies, model->vertex_count, model->vertices, local_screen);
 
-	draw_convert_xyz(game->context->xyz, 2048, 2048, 32, model->vertex_count, (vertex_f_t*)game->context->shared_verticies);
-	draw_convert_rgbq(game->context->rgbaq, model->vertex_count, (vertex_f_t*)game->context->shared_verticies, (color_f_t*)model->colors, model->color.a);
+	draw_convert_xyz(game->context.xyz, 2048, 2048, 32, model->vertex_count, (vertex_f_t*)game->context.shared_verticies);
+	draw_convert_rgbq(game->context.rgbaq, model->vertex_count, (vertex_f_t*)game->context.shared_verticies, (color_f_t*)model->colors, model->color.a);
 
 	q = draw_prim_start(q, 0, &model->prim_data, &model->color);
 
 	for(int i = 0; i < model->point_count; i++) {
-		q->dw[0] = game->context->rgbaq[model->points[i]].rgbaq;
-		q->dw[1] = game->context->xyz[model->points[i]].xyz;
+		q->dw[0] = game->context.rgbaq[model->points[i]].rgbaq;
+		q->dw[1] = game->context.xyz[model->points[i]].xyz;
 		q++;
 	}
 
@@ -168,17 +159,15 @@ qword_t *begin_render(BEGIN_RENDER_PARAMS) {
 	qword_t *q;
 	qword_t *dmatag;
 
-	game->context->current = game->context->packets[game->context->context];
-	dmatag = game->context->current->data;
+	game->context.current = game->context.packets[game->context.context];
+	dmatag = game->context.current->data;
 
 	q = dmatag;
 	q++;
 
-	printf("DDT\n");
+
 	q = draw_disable_tests(q,0,z);
-	printf("DDC");
 	q = draw_clear(q,0,2048.0f-320.0f,2048.0f-256.0f,frame->width,frame->height,0x00,0x00,0x00);
-	printf("DET");
 	q = draw_enable_tests(q,0, z);
 
 	DMATAG_CNT(dmatag,q-dmatag - 1,0,0,0);
@@ -197,21 +186,21 @@ qword_t *end_render(END_RENDER_PARAMS) {
 	DMATAG_END(dmatag,q-dmatag-1,0,0,0);
 
 	dma_wait_fast();
-	dma_channel_send_chain(DMA_CHANNEL_GIF, game->context->current->data, q - game->context->current->data, 0, 0);
+	dma_channel_send_chain(DMA_CHANNEL_GIF, game->context.current->data, q - game->context.current->data, 0, 0);
 
 	graph_wait_vsync();
 
 	draw_wait_finish();
-	graph_set_framebuffer_filtered(frame[game->context->context].address,frame[game->context->context].width,frame[game->context->context].psm,0,0);
+	graph_set_framebuffer_filtered(frame[game->context.context].address,frame[game->context.context].width,frame[game->context.context].psm,0,0);
 
-	game->context->context ^= 1;
+	game->context.context ^= 1;
 
-	q = game->context->flip->data;
+	q = game->context.flip->data;
 	q = draw_framebuffer(q,0, frame);
 	q = draw_finish(q);
 
 	dma_wait_fast();
-	dma_channel_send_normal_ucab(DMA_CHANNEL_GIF,game->context->flip->data, q - game->context->flip->data, 0);
+	dma_channel_send_normal_ucab(DMA_CHANNEL_GIF,game->context.flip->data, q - game->context.flip->data, 0);
 	
 	draw_wait_finish();
 

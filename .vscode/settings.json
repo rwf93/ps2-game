@@ -21,6 +21,15 @@
         "draw_dithering.h": "c",
         "tamtypes.h": "c",
         "pad.h": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "stdio.h": "c",
+        "memory.h": "c",
+        "config.h": "c",
+        "typeinfo": "c",
+        "model.h": "c",
+        "pch.h": "c",
+        "math.h": "c",
+        "sifrpc.h": "c",
+        "stdlib.h": "c"
     }
 }

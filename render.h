@@ -6,21 +6,7 @@
 #include <draw.h>
 #include <packet.h>
 
-#define MAX_VERTICES 65535
-#define ALIGH_VERT(alignment, type) memalign(alignment, sizeof(type) * MAX_VERTICES);
-#define ALIGN_VERT_128(type) ALIGH_VERT(128, type);
-
-typedef struct model {
-	int point_count;
-	int vertex_count;
-
-	int *points;
-	VECTOR *vertices;
-	VECTOR *colors;
-
-	prim_t prim_data;
-	color_t color;
-} model_t;
+#include "model.h"
 
 typedef struct render_context {
 	int context;
@@ -43,7 +29,7 @@ typedef struct render_context {
 
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
 #define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z
-#define DRAW_MODEL_PARAMS game_globals_t *game, model_t *model, qword_t *q, VECTOR position, VECTOR rotation
+#define DRAW_MODEL_PARAMS qword_t *q, game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation
 //#define RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 
 #define INIT_RENDER_CONTEXT render_context_t *context
