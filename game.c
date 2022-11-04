@@ -33,9 +33,6 @@ void init_gg(INIT_GG_PARAMS) {
 }
 
 qword_t *render(qword_t *q, game_globals_t *game) {
-	//pad_data_t pad;
-	//read_pad(game, 0, 0, &pad);
-
 	static VECTOR pos = {0,0,0,0};
 	static VECTOR rot = {0,0,0,0};	
 	
@@ -47,6 +44,11 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 }
 
 void load_modules() {
+	if(SifLoadModule("rom0:LOADFILE", 0, NULL) < 0) {
+		printf("loadfile failed\n");
+		SleepThread();
+	}
+	
 	if(SifLoadModule("rom0:SIO2MAN", 0, NULL) < 0) {
 		printf("sio failed\n");
 		SleepThread();
@@ -56,14 +58,26 @@ void load_modules() {
 		printf("padman failed\n");
 		SleepThread();
 	}
-}	
+}
 
 int main(int argc, char *argv[]) {
 	//// initalize RPC 
 	SifInitRpc(0);
 	load_modules();
-	
+
 	padInit(0);
+
+	FILE *f = fopen("TEST.TXT", "r");
+
+	if(!f) { printf("Failed opening\n"), SleepThread(); }
+
+	int c = getc(f);
+	while(c != feof(f)) {
+		printf("%c\n", c);
+		c = getc(f);
+	}
+
+	fclose(f);
 
 	game_globals_t game;		
 	init_gg(&game); // lol

@@ -44,13 +44,13 @@ int init_pad(game_globals_t *game, int port, int slot) {
         return 1;
     }
 
-    //for(int i = 0; (padInfoMode(port, slot, PAD_MODETABLE, i) == PAD_TYPE_DUALSHOCK); i++) {
-    //    if(i >= modes) {
-    //        printf("X1 - Not a dualshock controller\n");
-    //        return 1;
-    //    }
-    //}
-    //
+    for(int i = 0; (padInfoMode(port, slot, PAD_MODETABLE, i) == PAD_TYPE_DUALSHOCK); i++) {
+        if(i >= modes) {
+            printf("X1 - Not a dualshock controller\n");
+            return 1;
+        }
+    }
+    
 
     int i = 0;
     do {
@@ -115,7 +115,7 @@ int pad_init(PAD_INIT_PARAMS) {
     return 0;
 }
  
-int read_pad(READ_PAD_PARAMS) {
+void read_pad(READ_PAD_PARAMS) {
     struct padButtonStatus status;
     u32 new_pad_data = 0;
     u32 new_pad = 0;
@@ -131,11 +131,5 @@ int read_pad(READ_PAD_PARAMS) {
 
         pad_data->new_pad = new_pad;
         pad_data->old_pad = old_pad;
-
-        //printf("Left: (%i, %i) Right: (%i, %i)\n", status.ljoy_v, status.ljoy_v, status.rjoy_v, status.rjoy_v);
     }
-
-    // holy shit hes so based <33333 
-    #define EFUCKYOURSELF 69420
-    return -EFUCKYOURSELF;
 }

@@ -1,5 +1,6 @@
 *.o
 *.elf
 *.h.gch
+*.iso
 
 compile_commands.json

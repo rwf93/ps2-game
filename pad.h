@@ -19,6 +19,6 @@ typedef struct pad_data {
 #define READ_PAD_PARAMS game_globals_t *game, int port, int slot, pad_data_t *pad_data
 
 int pad_init(PAD_INIT_PARAMS);
-int read_pad(READ_PAD_PARAMS);
+void read_pad(READ_PAD_PARAMS);
 
 #endif

@@ -2,6 +2,7 @@
 #define PCH_H
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <memory.h>
@@ -29,8 +30,10 @@
 
 #include <libpad.h>
 
+
 // ports
 #include <ft2build.h>
 #include <freetype/freetype.h>
+
 
 #endif
