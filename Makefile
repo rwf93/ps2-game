@@ -6,7 +6,7 @@ EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -l
 EE_PCH = pch.h.gch$(subst .ttf,.ttf.h, $(shell ls assets/*.ttf))
 
 all: $(EE_PCH) $(EE_ISO)
-	$(EE_STRIP) --strip-all $(EE_BIN) 
+#	 $(EE_STRIP) --strip-all $(EE_BIN) 
 
 $(EE_ISO): $(EE_BIN)
 	mkisofs -l -o $(EE_ISO) $(EE_BIN) packaged/

@@ -62,7 +62,17 @@ void init_gs(INIT_GS_PARAMS)
 	frame->mask = 0;
 	frame->psm = GS_PSM_32;
 	frame->address = graph_vram_allocate(frame->width,frame->height, frame->psm, GRAPH_ALIGN_PAGE);
+	
+	frame++;
 
+	frame->width = FB_WIDTH;
+	frame->height = FB_HEIGHT;
+	frame->mask = 0;
+	frame->psm = GS_PSM_32;
+
+	// Allocate some vram for our framebuffer.
+	frame->address = graph_vram_allocate(frame->width,frame->height, frame->psm, GRAPH_ALIGN_PAGE);
+	
 	// Enable the zbuffer.
 	z->enable = DRAW_ENABLE;
 	z->mask = 0;
@@ -72,12 +82,11 @@ void init_gs(INIT_GS_PARAMS)
 
 	// Initialize the screen and tie the first framebuffer to the read circuits.
 	graph_initialize(frame->address,frame->width,frame->height,frame->psm,0,0);
-
 }
 
 void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 {
-	packet_t *packet = packet_init(16,PACKET_NORMAL);
+	packet_t *packet = packet_init(20,PACKET_NORMAL);
 	qword_t *q = packet->data;
 
 	q = draw_setup_environment(q,0,frame,z);
@@ -104,7 +113,7 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	create_local_world(local_world, position, rotation);
 	create_world_view(world_view, game->camera_position, game->camera_rotation);
 	create_local_screen(local_screen, local_world, world_view, game->view_screen);
-	
+
 	calculate_vertices(game->context.shared_verticies, model->vertex_count, model->vertices, local_screen);
 
 	draw_convert_xyz(game->context.xyz, 2048, 2048, 32, model->vertex_count, (vertex_f_t*)game->context.shared_verticies);
@@ -156,15 +165,11 @@ void end_render_context(END_RENDER_CONTEXT) {
 }
 
 qword_t *begin_render(BEGIN_RENDER_PARAMS) {
-	qword_t *q;
-	qword_t *dmatag;
-
 	game->context.current = game->context.packets[game->context.context];
-	dmatag = game->context.current->data;
+	q = game->context.current->data;
 
-	q = dmatag;
+	dmatag = q;
 	q++;
-
 
 	q = draw_disable_tests(q,0,z);
 	q = draw_clear(q,0,2048.0f-320.0f,2048.0f-256.0f,frame->width,frame->height,0x00,0x00,0x00);
@@ -175,11 +180,20 @@ qword_t *begin_render(BEGIN_RENDER_PARAMS) {
 	return q;
 }
 
+void flip_buffers(packet_t *flip, framebuffer_t *frame) {
+	qword_t *q = flip->data;
+
+	q = draw_framebuffer(q,0,frame);
+	q = draw_finish(q);
+
+	dma_wait_fast();
+	dma_channel_send_normal_ucab(DMA_CHANNEL_GIF,flip->data,q - flip->data, 0);
+
+	draw_wait_finish();
+}
+
 qword_t *end_render(END_RENDER_PARAMS) {
-	qword_t *dmatag;
-	dmatag = q; // scuffed
-	
-	q = dmatag;
+	dmatag = q;
 	q++;
 
 	q = draw_finish(q);
@@ -195,14 +209,7 @@ qword_t *end_render(END_RENDER_PARAMS) {
 
 	game->context.context ^= 1;
 
-	q = game->context.flip->data;
-	q = draw_framebuffer(q,0, frame);
-	q = draw_finish(q);
-
-	dma_wait_fast();
-	dma_channel_send_normal_ucab(DMA_CHANNEL_GIF,game->context.flip->data, q - game->context.flip->data, 0);
-	
-	draw_wait_finish();
+	flip_buffers(game->context.flip, &frame[game->context.context]);
 
 	return q;
 }

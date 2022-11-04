@@ -8,6 +8,7 @@ typedef struct model {
 	int *points;
 	VECTOR *vertices;
 	VECTOR *colors;
+	VECTOR *normals;
 
 	prim_t prim_data;
 	color_t color;

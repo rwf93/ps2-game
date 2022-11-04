@@ -50,7 +50,6 @@ int init_pad(game_globals_t *game, int port, int slot) {
             return 1;
         }
     }
-    
 
     int i = 0;
     do {

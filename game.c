@@ -8,6 +8,27 @@
 #include "assets/cube.h"
 #include "assets/teapot.h"
 
+VECTOR light_direction[4] = {
+	{  0.00f,  0.00f,  0.00f, 1.00f },
+	{  1.00f,  0.00f, -1.00f, 1.00f },
+	{  0.00f,  1.00f, -1.00f, 1.00f },
+	{ -1.00f, -1.00f, -1.00f, 1.00f }
+};
+
+VECTOR light_colour[4] = {
+	{ 0.00f, 0.00f, 0.00f, 1.00f },
+	{ 1.00f, 0.00f, 0.00f, 1.00f },
+	{ 0.30f, 0.30f, 0.30f, 1.00f },
+	{ 0.50f, 0.50f, 0.50f, 1.00f }
+};
+
+int light_type[4] = {
+	LIGHT_AMBIENT,
+	LIGHT_DIRECTIONAL,
+	LIGHT_DIRECTIONAL,
+	LIGHT_DIRECTIONAL
+};
+
 void init_gg(INIT_GG_PARAMS) {
 	
 	game->camera_position[0] = 0.00f;
@@ -26,9 +47,20 @@ void init_gg(INIT_GG_PARAMS) {
 	dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 
-	init_gs(&game->frame_buffer, &game->z_buffer);
-	init_drawing_environment(&game->frame_buffer, &game->z_buffer);
+	init_gs(game->frame_buffer, &game->z_buffer);
+	init_drawing_environment(game->frame_buffer, &game->z_buffer);
 	
+	// truly despicable
+	memset(game->lighting, 0, sizeof(world_lighting_t) * 4);	
+	for(int i = 0; i < MAX_LIGHTS; i++) {
+		for(int j = 0; j > 4; j++) {
+			game->lighting[i].light_position[j] = light_direction[i][j];
+			game->lighting[i].light_color[j] = light_colour[i][j];
+		}
+
+		game->lighting[i].light_type = light_type[i];
+	}
+
 	create_view_screen(game->view_screen, graph_aspect_ratio(), -3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.00f);
 }
 
@@ -39,7 +71,9 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	rot[0] += 1.0f * game->delta_time;
 	rot[1] += 1.0f * game->delta_time;
 
-	q = draw_model(q, game, get_model(game, "cube"), pos, rot);
+	q = draw_model(q, game, get_model(game, "cube"), pos, rot, 0);
+	q = draw_model(q, game, get_model(game, "teapot"), pos, rot, 0);
+
 	return q;
 }
 
@@ -104,6 +138,7 @@ int main(int argc, char *argv[]) {
 	teapot_model.points = points_teapot;
 	teapot_model.vertices = vertices_teapot;
 	teapot_model.colors = colours_teapot;
+	//teapot_model.normals = normals_teapot;
 
 	teapot_model.prim_data.type = PRIM_TRIANGLE;
 	teapot_model.prim_data.shading = PRIM_SHADE_GOURAUD;
@@ -127,13 +162,14 @@ int main(int argc, char *argv[]) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
 		
-		qword_t *q;
+		qword_t *q = 0;
+		qword_t *dmatag = 0;
 
-		q = begin_render(&game, &game.frame_buffer, &game.z_buffer);
+		q = begin_render(q, dmatag, &game, game.frame_buffer, &game.z_buffer);
 		
 		q = render(q, &game);
 
-		q = end_render(q, &game, &game.frame_buffer, &game.z_buffer);
+		q = end_render(q, dmatag, &game, game.frame_buffer, &game.z_buffer);
 
 		game.last_time = game.current_time;
 	}

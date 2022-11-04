@@ -5,6 +5,7 @@ typedef struct game_globals game_globals_t;
 typedef struct model model_t;
 typedef struct model_list model_list_t;
 typedef struct pad_man pad_man_t;
+typedef struct world_lighting world_lighting_t;
 
 #include "render.h"
 #include "model.h"
@@ -20,11 +21,13 @@ typedef struct game_globals {
 	VECTOR camera_position;
 	VECTOR camera_rotation;
 	
-	framebuffer_t frame_buffer;
+	framebuffer_t frame_buffer[2];
 	zbuffer_t z_buffer;
 
 	MATRIX view_screen;
 
+	world_lighting_t lighting[MAX_LIGHTS];
+	
 	render_context_t context;
 	
 	int model_list_index;

@@ -25,17 +25,22 @@ typedef struct render_context {
 	color_t *rgbaq;
 } render_context_t;
 
+typedef struct world_lighting { 
+	VECTOR light_position;
+	VECTOR light_color;
+	int light_type;
+} world_lighting_t;
 
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
 #define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z
-#define DRAW_MODEL_PARAMS qword_t *q, game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation
+#define DRAW_MODEL_PARAMS qword_t *q, game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation, int lit
 //#define RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 
 #define INIT_RENDER_CONTEXT render_context_t *context
 #define END_RENDER_CONTEXT INIT_RENDER_CONTEXT // basic for now...
 
-#define BEGIN_RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
-#define END_RENDER_PARAMS qword_t *q, BEGIN_RENDER_PARAMS
+#define BEGIN_RENDER_PARAMS qword_t *q, qword_t *dmatag, game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
+#define END_RENDER_PARAMS BEGIN_RENDER_PARAMS
 
 void init_gs(INIT_GS_PARAMS);
 void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS);
