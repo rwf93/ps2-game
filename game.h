@@ -26,7 +26,7 @@ typedef struct game_globals {
 
 	MATRIX view_screen;
 
-	world_lighting_t lighting[MAX_LIGHTS];
+	world_lighting_t lighting;
 	
 	render_context_t context;
 	

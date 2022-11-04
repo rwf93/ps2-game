@@ -7,6 +7,7 @@
 #include <packet.h>
 
 #include "model.h"
+#include "config.h"
 
 typedef struct render_context {
 	int context;
@@ -26,9 +27,9 @@ typedef struct render_context {
 } render_context_t;
 
 typedef struct world_lighting { 
-	VECTOR light_position;
-	VECTOR light_color;
-	int light_type;
+	VECTOR light_position[MAX_LIGHTS];
+	VECTOR light_color[MAX_LIGHTS];
+	int light_type[MAX_LIGHTS];
 } world_lighting_t;
 
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
