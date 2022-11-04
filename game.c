@@ -50,15 +50,9 @@ void init_gg(INIT_GG_PARAMS) {
 	init_gs(game->frame_buffer, &game->z_buffer);
 	init_drawing_environment(game->frame_buffer, &game->z_buffer);
 	
-	// truly despicable
-	for(int i = 0; i < MAX_LIGHTS; i++) {
-		for(int j = 0; j < 4; j++) {
-			game->lighting.light_position[i][j] = light_direction[i][j];
-			game->lighting.light_color[i][j] = light_colour[i][j];
-		}
-		
-		game->lighting.light_type[i] = light_type[i];
-	}
+	memcpy(game->lighting.light_position, light_direction, sizeof(VECTOR) * MAX_LIGHTS);
+	memcpy(game->lighting.light_color, light_colour, sizeof(VECTOR) * MAX_LIGHTS);
+	memcpy(game->lighting.light_type, light_type, sizeof(int) * MAX_LIGHTS);
 
 	create_view_screen(game->view_screen, graph_aspect_ratio(), -3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.00f);
 }
@@ -71,7 +65,7 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	rot[1] += 1.0f * game->delta_time;
 
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, 0);
-	q = draw_model(q, game, get_model(game, "teapot"), pos, rot, 1);
+	q = draw_model(q, game, get_model(game, "teapot"), pos, rot, MDL_LIGHTING);
 
 	return q;
 }

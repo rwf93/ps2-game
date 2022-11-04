@@ -111,17 +111,24 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	dmatag = q;
 	q++;
 
+	prim_t temp_prim = model->prim_data;
+
 	create_local_world(local_world, position, rotation);
 	create_local_light(local_light, rotation);	
 	create_world_view(world_view, game->camera_position, game->camera_rotation);
 	create_local_screen(local_screen, local_world, world_view, game->view_screen);
 
 	VECTOR *hack_colors = model->colors;
-	if(lit) {
+	
+	if((flags & MDL_LIGHTING) > 0) {
 		calculate_normals(game->context.shared_normals, model->vertex_count, model->normals, local_light);
 		calculate_lights(game->context.shared_lights, model->vertex_count, game->context.shared_normals, game->lighting.light_position, game->lighting.light_color, game->lighting.light_type, MAX_LIGHTS);
 		calculate_colours(game->context.shared_colors, model->vertex_count, model->colors, game->context.shared_lights);
 		hack_colors = game->context.shared_colors; // really sus
+	}
+
+	if((flags & MDL_WIREFRAME) > 0) {
+		temp_prim.type = PRIM_LINE_STRIP;
 	}
 
 	calculate_vertices(game->context.shared_verticies, model->vertex_count, model->vertices, local_screen);
@@ -129,7 +136,7 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	draw_convert_xyz(game->context.xyz, 2048, 2048, 32, model->vertex_count, (vertex_f_t*)game->context.shared_verticies);
 	draw_convert_rgbq(game->context.rgbaq, model->vertex_count, (vertex_f_t*)game->context.shared_verticies, (color_f_t*)hack_colors, model->color.a);
 
-	q = draw_prim_start(q, 0, &model->prim_data, &model->color);
+	q = draw_prim_start(q, 0, &temp_prim, &model->color);
 
 	for(int i = 0; i < model->point_count; i++) {
 		q->dw[0] = game->context.rgbaq[model->points[i]].rgbaq;

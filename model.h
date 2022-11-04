@@ -1,6 +1,9 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#define MDL_LIGHTING (1 << 0)
+#define MDL_WIREFRAME (1 << 1)
+
 typedef struct model {
 	int point_count;
 	int vertex_count;
