@@ -67,18 +67,6 @@ int main(int argc, char *argv[]) {
 
 	padInit(0);
 
-	FILE *f = fopen("TEST.TXT", "r");
-
-	if(!f) { printf("Failed opening\n"), SleepThread(); }
-
-	int c = getc(f);
-	while(c != feof(f)) {
-		printf("%c\n", c);
-		c = getc(f);
-	}
-
-	fclose(f);
-
 	game_globals_t game;		
 	init_gg(&game); // lol
 

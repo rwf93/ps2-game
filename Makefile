@@ -1,4 +1,4 @@
-EE_CFLAGS = -g -Wpedantic
+EE_CFLAGS = -g
 EE_BIN = game.elf
 EE_ISO = game.iso
 EE_OBJS = game.o render.o pad.o model.o
