@@ -129,8 +129,8 @@ void init_render_context(INIT_RENDER_CONTEXT) {
 	//dma_wait_fast();
 	context->context = 0;
 	
-	context->packets[0] = packet_init(MAX_VERTICES, PACKET_NORMAL);
-	context->packets[1] = packet_init(MAX_VERTICES, PACKET_NORMAL);
+	context->packets[0] = packet_init(PACKET_SIZE, PACKET_NORMAL);
+	context->packets[1] = packet_init(PACKET_SIZE, PACKET_NORMAL);
 	context->flip = packet_init(3, PACKET_UCAB);
 	
 	context->shared_verticies = ALIGN_VERT_128(VECTOR);

@@ -1,7 +1,8 @@
 EE_CFLAGS = -g
 EE_BIN = game.elf
 EE_OBJS = game.o render.o pad.o model.o
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc
+# precompiled header
 EE_PCH = pch.h.gch
 
 all: $(EE_PCH) $(EE_BIN)

@@ -30,6 +30,7 @@
         "pch.h": "c",
         "math.h": "c",
         "sifrpc.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "loadfile.h": "c"
     }
 }

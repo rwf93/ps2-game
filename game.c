@@ -33,8 +33,16 @@ void init_gg(INIT_GG_PARAMS) {
 }
 
 qword_t *render(qword_t *q, game_globals_t *game) {
-	VECTOR position = {0,0,0,0};
-	q = draw_model(q, game, get_model(game, "cube"), position, position);
+	pad_data_t pad;
+	read_pad(game, 0, 0, &pad);
+
+	static VECTOR pos = {0,0,0,0};
+	static VECTOR rot = {0,0,0,0};	
+	
+	rot[0] += 1.0f * game->delta_time;
+	rot[1] += 1.0f * game->delta_time;
+
+	q = draw_model(q, game, get_model(game, "cube"), pos, rot);
 	return q;
 }
 
@@ -51,15 +59,23 @@ void load_modules() {
 }	
 
 int main(int argc, char *argv[]) {
-	// initalize RPC 
+	//// initalize RPC 
 	SifInitRpc(0);
 	load_modules();
 	
+	padInit(0);
+
 	game_globals_t game;		
 	init_gg(&game); // lol
+	
+	if(pad_init(&game, 0, 0)) {
+		printf("general pad failure\n");
+		SleepThread();
+	}
 
 	init_render_context(&game.context);
-	
+
+
 	model_t cube_model;
 
 	cube_model.point_count = points_count_cube;
@@ -111,8 +127,6 @@ int main(int argc, char *argv[]) {
 	create_model(&game, "cube", &cube_model);
 	create_model(&game, "teapot", &teapot_model);
 
-	VECTOR rot = {0,0,0,0};	
-	
 	for(;;) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
@@ -129,7 +143,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	end_render_context(&game.context);
-	
+
 	SleepThread();
 	
 	return 0;

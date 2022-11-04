@@ -23,7 +23,6 @@ typedef struct render_context {
 
 	xyz_t *xyz;
 	color_t *rgbaq;
-
 } render_context_t;
 
 

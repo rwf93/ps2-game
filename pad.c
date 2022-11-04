@@ -30,11 +30,11 @@ int init_pad(game_globals_t *game, int port, int slot) {
     printf("Device has %i modes\n", modes);
 
     if(modes > 0) {
-        printf("(");
+        printf("( ");
         for(int i = 0; i < modes; i++) {
-            printf("%i\n", padInfoMode(port, slot, PAD_MODETABLE, i));
+            printf("%i ", padInfoMode(port, slot, PAD_MODETABLE, i));
         }
-        printf(")");
+        printf(")\n");
     }
 
     printf("Pad is currently using mode %i\n", padInfoMode(port, slot, PAD_MODECURID, 0));
@@ -44,13 +44,25 @@ int init_pad(game_globals_t *game, int port, int slot) {
         return 1;
     }
 
-    for(int i = 0; (padInfoMode(port, slot, PAD_MODETABLE, i) == PAD_TYPE_DUALSHOCK); i++) {
-        if(i >= modes) {
-            printf("X1 - Not a dualshock controller\n");
-            return 1;
-        }
+    //for(int i = 0; (padInfoMode(port, slot, PAD_MODETABLE, i) == PAD_TYPE_DUALSHOCK); i++) {
+    //    if(i >= modes) {
+    //        printf("X1 - Not a dualshock controller\n");
+    //        return 1;
+    //    }
+    //}
+    //
+
+    int i = 0;
+    do {
+        if (padInfoMode(port, slot, PAD_MODETABLE, i) == PAD_TYPE_DUALSHOCK)
+            break;
+        i++;
+    } while (i < modes);
+    if (i >= modes) {
+        printf("X1 - Not a dualshock controller\n");
+        return 1;
     }
-    
+
     if(padInfoMode(port, slot, PAD_MODECUREXID, 0)) {
         printf("X2 - Not a dualshock controller\n");
         return 1;
@@ -88,18 +100,42 @@ int init_pad(game_globals_t *game, int port, int slot) {
 }
 
 int pad_init(PAD_INIT_PARAMS) {
-    int ret;
-    if(ret = (padPortOpen(port, slot, game->pad.pad_buf) == 0)) {
-        printf("failed to open pad(%i, %i) %i", ret);
-        SleepThread();
+    int ret = padPortOpen(port, slot, game->pad.pad_buf);
+
+    if(ret == 0) {
+        printf("failed to open pad(%i, %i) %i", port, slot, ret);
+        return 1;
     }
 
     if(!init_pad(game, port, slot)) {
-        printf("pad(%i, %i) failed\n", port, slot);
-        SleepThread();
+        printf("failed to init pad(%i, %i) %i", port, slot, ret);
+        return 1;
     }
+
+    return 0;
 }
  
 int read_pad(READ_PAD_PARAMS) {
-    
+    struct padButtonStatus status;
+    u32 new_pad_data = 0;
+    u32 new_pad = 0;
+    static u32 old_pad = 0;
+
+    wait_pad_ready(port, slot);
+
+    if(padRead(port, slot, &status) != 0) {
+        new_pad_data = 0xffff ^ status.btns;
+
+        new_pad = new_pad_data & ~old_pad;
+        old_pad = new_pad_data;
+
+        pad_data->new_pad = new_pad;
+        pad_data->old_pad = old_pad;
+
+        printf("Left: (%i, %i) Right: (%i, %i)\n", status.ljoy_v, status.ljoy_v, status.rjoy_v, status.rjoy_v);
+    }
+
+    // holy shit hes so based <33333 
+    #define EFUCKYOURSELF 69420
+    return -EFUCKYOURSELF;
 }
