@@ -1,9 +1,8 @@
 EE_CFLAGS = -g
 EE_BIN = game.elf
 EE_OBJS = game.o render.o pad.o model.o
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc
-# precompiled header
-EE_PCH = pch.h.gch
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz
+EE_PCH = pch.h.gch$(subst .ttf,.ttf.h, $(shell ls assets/*.ttf))
 
 all: $(EE_PCH) $(EE_BIN)
 	$(EE_STRIP) --strip-all $(EE_BIN) 
@@ -19,7 +18,3 @@ reset:
 
 include Makefile.pref
 include Makefile.eeglobal
-
-# sus hack
-%.h.gch: %.h
-	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@

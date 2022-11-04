@@ -132,7 +132,7 @@ int read_pad(READ_PAD_PARAMS) {
         pad_data->new_pad = new_pad;
         pad_data->old_pad = old_pad;
 
-        printf("Left: (%i, %i) Right: (%i, %i)\n", status.ljoy_v, status.ljoy_v, status.rjoy_v, status.rjoy_v);
+        //printf("Left: (%i, %i) Right: (%i, %i)\n", status.ljoy_v, status.ljoy_v, status.rjoy_v, status.rjoy_v);
     }
 
     // holy shit hes so based <33333 

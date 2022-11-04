@@ -29,4 +29,8 @@
 
 #include <libpad.h>
 
+// ports
+#include <ft2build.h>
+#include <freetype/freetype.h>
+
 #endif

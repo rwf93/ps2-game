@@ -5,8 +5,8 @@
 #include "render.h"
 #include "model.h"
 
-#include "cube.h"
-#include "teapot.h"
+#include "assets/cube.h"
+#include "assets/teapot.h"
 
 void init_gg(INIT_GG_PARAMS) {
 	
@@ -22,7 +22,7 @@ void init_gg(INIT_GG_PARAMS) {
 
 	game->last_time = clock();
 	
-	// gs shit
+	// dma shit
 	dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 
@@ -33,8 +33,8 @@ void init_gg(INIT_GG_PARAMS) {
 }
 
 qword_t *render(qword_t *q, game_globals_t *game) {
-	pad_data_t pad;
-	read_pad(game, 0, 0, &pad);
+	//pad_data_t pad;
+	//read_pad(game, 0, 0, &pad);
 
 	static VECTOR pos = {0,0,0,0};
 	static VECTOR rot = {0,0,0,0};	
@@ -67,14 +67,8 @@ int main(int argc, char *argv[]) {
 
 	game_globals_t game;		
 	init_gg(&game); // lol
-	
-	if(pad_init(&game, 0, 0)) {
-		printf("general pad failure\n");
-		SleepThread();
-	}
 
 	init_render_context(&game.context);
-
 
 	model_t cube_model;
 

@@ -31,6 +31,11 @@
         "math.h": "c",
         "sifrpc.h": "c",
         "stdlib.h": "c",
-        "loadfile.h": "c"
+        "loadfile.h": "c",
+        "cube.h": "c",
+        "weezerfont.ttf.h": "c",
+        "font.h": "c",
+        "ft2build.h": "c",
+        "freetype.h": "c"
     }
 }

@@ -23,7 +23,7 @@ ifeq ($(NODEFAULTLIBS), 1)
 endif
 
 # Include directories
-EE_INCS := -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include -I. $(EE_INCS)
+EE_INCS := -I$(PS2SDK)/ee/include -I$(PS2SDK)/ports/include -I$(PS2SDK)/ports/include/freetype2 -I$(PS2SDK)/common/include -I. $(EE_INCS) 
 
 # Optimization compiler flags
 EE_OPTFLAGS ?= -O2
@@ -38,7 +38,7 @@ EE_CFLAGS := -D_EE -G0 $(EE_OPTFLAGS) $(EE_WARNFLAGS) $(EE_CFLAGS)
 EE_CXXFLAGS := -D_EE -G0 $(EE_OPTFLAGS) $(EE_WARNFLAGS) $(EE_CXXFLAGS)
 
 # Linker flags
-EE_LDFLAGS := -L$(PS2SDK)/ee/lib -Wl,-zmax-page-size=128 $(EE_LDFLAGS)
+EE_LDFLAGS := -L$(PS2SDK)/ee/lib -L$(PS2SDK)/ports/lib -Wl,-zmax-page-size=128 $(EE_LDFLAGS)
 
 # Assembler flags
 EE_ASFLAGS := -G0 $(EE_ASFLAGS)
@@ -89,3 +89,10 @@ $(EE_ERL): $(EE_OBJS)
 $(EE_LIB): $(EE_OBJS)
 	$(DIR_GUARD)
 	$(EE_AR) cru $(EE_LIB) $(EE_OBJS)
+
+# scuffed
+%.h.gch: %.h
+	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@	
+
+%.ttf.h: %.ttf
+	bin2c $< $@ $(subst /,_,$(subst .,_,$<))
