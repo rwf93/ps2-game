@@ -32,6 +32,21 @@ typedef struct world_lighting {
 	int light_type[MAX_LIGHTS];
 } world_lighting_t;
 
+typedef struct camera {
+	VECTOR camera_position;
+	VECTOR camera_rotation;
+
+	MATRIX view_screen;
+
+	float left;
+	float right;
+	float top;
+	float bottom;
+
+	float zfar;
+	float znear;
+} camera_t;
+
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
 #define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z
 #define DRAW_MODEL_PARAMS qword_t *q, game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation, int flags

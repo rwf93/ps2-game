@@ -44,13 +44,6 @@ int init_pad(game_globals_t *game, int port, int slot) {
         return 1;
     }
 
-    for(int i = 0; (padInfoMode(port, slot, PAD_MODETABLE, i) == PAD_TYPE_DUALSHOCK); i++) {
-        if(i >= modes) {
-            printf("X1 - Not a dualshock controller\n");
-            return 1;
-        }
-    }
-
     int i = 0;
     do {
         if (padInfoMode(port, slot, PAD_MODETABLE, i) == PAD_TYPE_DUALSHOCK)
@@ -62,7 +55,7 @@ int init_pad(game_globals_t *game, int port, int slot) {
         return 1;
     }
 
-    if(padInfoMode(port, slot, PAD_MODECUREXID, 0)) {
+    if((padInfoMode(port, slot, PAD_MODECUREXID, 0)) == 0) {
         printf("X2 - Not a dualshock controller\n");
         return 1;
     }
@@ -77,20 +70,20 @@ int init_pad(game_globals_t *game, int port, int slot) {
 
     wait_pad_ready(port, slot);
 
-    game->pad.actuators = padInfoAct(port, slot, -1, 0);
-    printf("number of actuators: %i\n", game->pad.actuators);
+    game->pad[port].actuators = padInfoAct(port, slot, -1, 0);
+    printf("number of actuators: %i\n", game->pad[port].actuators);
 
-    if(game->pad.actuators != 0) {
-        game->pad.act_align[0] = 0;
-        game->pad.act_align[1] = 1;
-        game->pad.act_align[2] = 0xff;
-        game->pad.act_align[3] = 0xff;
-        game->pad.act_align[4] = 0xff;
-        game->pad.act_align[5] = 0xff;
+    if(game->pad[port].actuators != 0) {
+        game->pad[port].act_align[0] = 0;
+        game->pad[port].act_align[1] = 1;
+        game->pad[port].act_align[2] = 0xff;
+        game->pad[port].act_align[3] = 0xff;
+        game->pad[port].act_align[4] = 0xff;
+        game->pad[port].act_align[5] = 0xff;
 
         wait_pad_ready(port, slot);
 
-        printf("set act align %i\n", padSetActAlign(port, slot, game->pad.act_align)); 
+        printf("set act align %i\n", padSetActAlign(port, slot, game->pad[port].act_align)); 
     } 
     
     wait_pad_ready(port, slot);
@@ -99,7 +92,7 @@ int init_pad(game_globals_t *game, int port, int slot) {
 }
 
 int pad_init(PAD_INIT_PARAMS) {
-    int ret = padPortOpen(port, slot, game->pad.pad_buf);
+    int ret = padPortOpen(port, slot, game->pad[port].pad_buf);
 
     if(ret == 0) {
         printf("failed to open pad(%i, %i) %i", port, slot, ret);
@@ -130,5 +123,6 @@ void read_pad(READ_PAD_PARAMS) {
 
         pad_data->new_pad = new_pad;
         pad_data->old_pad = old_pad;
+        pad_data->button_status = status;
     }
 }

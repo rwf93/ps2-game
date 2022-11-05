@@ -8,64 +8,104 @@
 #include "assets/cube.h"
 #include "assets/teapot.h"
 
-VECTOR light_direction[4] = {
-	{  0.00f,  0.00f,  0.00f, 1.00f },
-	{  1.00f,  0.00f, -1.00f, 1.00f },
-	{  0.00f,  1.00f, -1.00f, 1.00f },
-	{ -1.00f, -1.00f, -1.00f, 1.00f }
-};
-
-VECTOR light_colour[4] = {
-	{ 0.00f, 0.00f, 0.00f, 1.00f },
-	{ 1.00f, 0.00f, 0.00f, 1.00f },
-	{ 0.30f, 0.30f, 0.30f, 1.00f },
-	{ 0.50f, 0.50f, 0.50f, 1.00f }
-};
-
-int light_type[4] = {
-	LIGHT_AMBIENT,
-	LIGHT_DIRECTIONAL,
-	LIGHT_DIRECTIONAL,
-	LIGHT_DIRECTIONAL
-};
-
 void init_gg(INIT_GG_PARAMS) {
-	
-	game->camera_position[0] = 0.00f;
-	game->camera_position[1] = 0.00f;
-	game->camera_position[2] = 100.00f;
-	game->camera_position[3] = 1.00f;
-	
-	game->camera_rotation[0] = 0.00f;
-	game->camera_rotation[1] = 0.00f;
-	game->camera_rotation[2] = 0.00f;
-	game->camera_rotation[3] = 1.00f;
+	VECTOR light_direction[4] = {
+		{  0.00f,  0.00f,  0.00f, 1.00f },
+		{  1.00f,  0.00f, -1.00f, 1.00f },
+		{  0.00f,  1.00f, -1.00f, 1.00f },
+		{ -1.00f, -1.00f, -1.00f, 1.00f }
+	};
+
+	VECTOR light_colour[4] = {
+		{ 0.00f, 0.00f, 0.00f, 1.00f },
+		{ 0.00f, 0.00f, 0.00f, 1.00f },
+		{ 0.30f, 0.30f, 0.30f, 1.00f },
+		{ 0.50f, 0.50f, 0.50f, 1.00f }
+	};
+
+	int light_type[4] = {
+		LIGHT_AMBIENT,
+		LIGHT_DIRECTIONAL,
+		LIGHT_DIRECTIONAL,
+		LIGHT_DIRECTIONAL
+	};
+
+	memcpy(game->lighting.light_position, light_direction, sizeof(VECTOR) * MAX_LIGHTS);
+	memcpy(game->lighting.light_color, light_colour, sizeof(VECTOR) * MAX_LIGHTS);
+	memcpy(game->lighting.light_type, light_type, sizeof(int) * MAX_LIGHTS);
 
 	game->last_time = clock();
-	
+
 	// dma shit
 	dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 
 	init_gs(game->frame_buffer, &game->z_buffer);
 	init_drawing_environment(game->frame_buffer, &game->z_buffer);
-	
-	memcpy(game->lighting.light_position, light_direction, sizeof(VECTOR) * MAX_LIGHTS);
-	memcpy(game->lighting.light_color, light_colour, sizeof(VECTOR) * MAX_LIGHTS);
-	memcpy(game->lighting.light_type, light_type, sizeof(int) * MAX_LIGHTS);
 
-	create_view_screen(game->view_screen, graph_aspect_ratio(), -3.00f, 3.00f, -3.00f, 3.00f, 1.00f, 2000.00f);
+	camera_t camera;
+	
+	camera.left = -3.0f;
+	camera.right = 3.0f;
+	camera.bottom = -3.0f;
+	camera.top = 3.0f;
+
+	camera.znear = 1.0f;
+	camera.zfar = 2000.0f;
+
+	VECTOR camera_position = { 0.00f, 0.00f, 100.00f, 1.00f };
+	VECTOR camera_rotation = { 0.00f, 0.00f,   0.00f, 1.00f };
+	
+	memcpy(camera.camera_position, camera_position, sizeof(VECTOR));
+	memcpy(camera.camera_rotation, camera_rotation, sizeof(VECTOR));
+
+	create_view_screen(camera.view_screen, graph_aspect_ratio(), camera.left, camera.right, camera.bottom, camera.top, camera.znear, camera.zfar);
+
+	game->camera = camera;
 }
 
 qword_t *render(qword_t *q, game_globals_t *game) {
+	pad_data_t pad;
+	read_pad(game, 0, 0, &pad);
+
+	
+	//printf("%i,%i\n", pad.button_status.rjoy_h, pad.button_status.rjoy_v);
+
+	if(pad.button_status.rjoy_h > 240) {
+		game->camera.camera_rotation[1] -= 1 * game->delta_time;
+	}
+
+	if(pad.button_status.rjoy_v > 240) {
+		game->camera.camera_rotation[0] -= 1 * game->delta_time;
+	}
+
+	if(pad.button_status.rjoy_h < 90) {
+		game->camera.camera_rotation[1] += 1 * game->delta_time;
+	}
+
+	if(pad.button_status.rjoy_v < 90) {
+		game->camera.camera_rotation[0] += 1 * game->delta_time;
+	}
+
 	static VECTOR pos = {0,0,0,0};
 	static VECTOR rot = {0,0,0,0};	
 	
-	rot[0] += 1.0f * game->delta_time;
-	rot[1] += 1.0f * game->delta_time;
+	//rot[0] += 1.0f * game->delta_time;
+	//rot[1] += 1.0f * game->delta_time;
 
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, 0);
+	
+	pos[0] = 40;
+	pos[1] = 40;
+	pos[2] = 40;
+	pos[3] = 40;
+
 	q = draw_model(q, game, get_model(game, "teapot"), pos, rot, MDL_LIGHTING);
+
+	pos[0] = 0;
+	pos[1] = 0;
+	pos[2] = 0;
+	pos[3] = 0;
 
 	return q;
 }
@@ -92,10 +132,12 @@ int main(int argc, char *argv[]) {
 	SifInitRpc(0);
 	load_modules();
 
-	padInit(0);
 
 	game_globals_t game;		
 	init_gg(&game); // lol
+
+	padInit(0);
+	pad_init(&game, 0, 0);
 
 	init_render_context(&game.context);
 
@@ -145,7 +187,7 @@ int main(int argc, char *argv[]) {
 	teapot_model.color.r = 0x0;
 	teapot_model.color.g = 0x80;
 	teapot_model.color.b = 0x80;
-	teapot_model.color.a = 0x80;
+	teapot_model.color.a = 0x50;
 	teapot_model.color.q = 1.0f;
 
 	create_model(&game, "cube", &cube_model);
