@@ -8,6 +8,13 @@
 #include "assets/cube.h"
 #include "assets/teapot.h"
 
+#include <sbv_patches.h>
+#include <iopcontrol.h>
+#include <iopheap.h>
+
+#define CGLTF_IMPLEMENTATION
+#include "cgltf.h"
+
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
 		{  0.00f,  0.00f,  0.00f, 1.00f },
@@ -68,9 +75,6 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	pad_data_t pad;
 	read_pad(game, 0, 0, &pad);
 
-	
-	//printf("%i,%i\n", pad.button_status.rjoy_h, pad.button_status.rjoy_v);
-
 	if(pad.button_status.rjoy_h > 240) {
 		game->camera.camera_rotation[1] -= 1 * game->delta_time;
 	}
@@ -127,11 +131,24 @@ void load_modules() {
 	}
 }
 
+#define LOAD_ATTRIBUTE(accesor, numComp, dataType, dstPtr) \
+    { \
+        int n = 0; \
+        dataType *buffer = (dataType *)accesor->buffer_view->buffer->data + accesor->buffer_view->offset/sizeof(dataType) + accesor->offset/sizeof(dataType); \
+        for (int k = 0; k < accesor->count; k++) \
+        {\
+            for (int l = 0; l < numComp; l++) \
+            {\
+                dstPtr[numComp*k + l] = buffer[n + l];\
+            }\
+            n += (int)(accesor->stride/sizeof(dataType));\
+        }\
+	}
+
 int main(int argc, char *argv[]) {
-	//// initalize RPC 
+	//// initalize RPC 	
 	SifInitRpc(0);
 	load_modules();
-
 
 	game_globals_t game;		
 	init_gg(&game); // lol
@@ -141,10 +158,37 @@ int main(int argc, char *argv[]) {
 
 	init_render_context(&game.context);
 
+	cgltf_options options = {0};
+	cgltf_data* data = NULL;
+	cgltf_parse_file(&options, "CUBE.GLTF", &data);
+
+	int current_model = 0;
+	
 	model_t cube_model;
 
 	cube_model.point_count = points_count_cube;
 	cube_model.vertex_count = vertex_count_cube;
+
+
+	for(int i = 0; i < data->meshes[current_model].primitives_count; i++) {
+		cgltf_primitive prim = data->meshes[current_model].primitives[i];
+		cgltf_size num_vertex = prim.attributes[0].data->count;
+
+		if(prim.indices != NULL) {
+			cgltf_accessor *attribute = data->meshes[0].primitives[i].indices;
+
+			unsigned int *points = malloc(attribute->count * sizeof(unsigned int));
+
+			for(cgltf_size index = 0; index < attribute->count; index++) {
+				unsigned int point = 0;
+				cgltf_accessor_read_uint(attribute, index, &point, 4);
+				printf("%u", point);
+			}
+
+			free(points);
+
+		}
+	}
 
 	cube_model.points = points_cube;
 	cube_model.vertices = vertices_cube;

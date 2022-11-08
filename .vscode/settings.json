@@ -3,6 +3,19 @@
         "*.lua": "glua",
         "config.h": "c",
         "model.h": "c",
-        "render.h": "c"
+        "render.h": "c",
+        "teapot.h": "c",
+        "tinyobj_loader_c.h": "c",
+        "stddef.h": "c",
+        "concepts": "c",
+        "cstdio": "c",
+        "type_traits": "c",
+        "new": "c",
+        "typeinfo": "c",
+        "fast_obj.h": "c",
+        "game.h": "c",
+        "pch.h": "c",
+        "math.h": "c",
+        "tamtypes.h": "c"
     }
 }

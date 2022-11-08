@@ -7,6 +7,7 @@
 #include <string.h>
 #include <memory.h>
 #include <math.h>
+#include <ctype.h>
 
 #include <debug.h>
 
@@ -34,6 +35,5 @@
 // ports
 #include <ft2build.h>
 #include <freetype/freetype.h>
-
 
 #endif
