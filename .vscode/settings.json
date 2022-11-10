@@ -21,6 +21,7 @@
         "math3d.h": "c",
         "draw2d.h": "c",
         "libpad.h": "c",
-        "draw3d.h": "c"
+        "draw3d.h": "c",
+        "hashmap.h": "c"
     }
 }

@@ -18,8 +18,6 @@
 #include "assets/prettycube.h"
 #include "assets/flower.c"
 
-extern unsigned char flower[]; //for init of flower textures, modules would make models and textures easier to load
-
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
 		{  0.00f,  0.00f,  0.00f, 1.00f },
@@ -167,44 +165,38 @@ int main(int argc, char *argv[]) {
 
 	init_render_context(&game.context);
 
-	//int points[36];
-	//VECTOR verts[24];
- 
-
 	fastObjMesh* mesh = fast_obj_read("CUBE.OBJ");
 	int index_buffer_size = mesh->face_count * 2 * 3;
 
 	int *points = malloc(sizeof(int) * index_buffer_size);
 	VECTOR *verts = malloc(sizeof(VECTOR) * mesh->index_count);
 	VECTOR *color = malloc(sizeof(VECTOR) * mesh->index_count);
-	int g = 0;
+	
 	for(int i = 0; i < mesh->group_count; i++) {
 		fastObjGroup grp = mesh->groups[i];
 		int idx = 0;	
 		for(int j = 0; j < grp.face_count; j++) {
 			int fv = mesh->face_vertices[grp.face_offset + j];
-			
-
 			for(int k = 0; k < fv; k++) {
 				fastObjIndex mi = mesh->indices[grp.index_offset + idx];
 
-				printf("ijk %i %i %i\tidx fv: %i %i\n", i, j, k, idx, fv);
+				points[i] = mi.p - 1;
 
 				color[idx][0] = 1.0f;
 				color[idx][1] = 1.0f;
 				color[idx][2] = 1.0f;
 				color[idx][3] = 1.0f;
-				
-				verts[idx][0] = mesh->positions[3 * mi.p + 0]; 
-				verts[idx][1] = mesh->positions[3 * mi.p + 1]; 
-				verts[idx][2] = mesh->positions[3 * mi.p + 2];
-				verts[idx][3] = 1.0f;
+				if(mi.p - 1) {
+		
+					verts[idx][0] = mesh->positions[3 * mi.p + 0]; 
+					verts[idx][1] = mesh->positions[3 * mi.p + 1]; 
+					verts[idx][2] = mesh->positions[3 * mi.p + 2];
+					verts[idx][3] = 1.0f;
+				}
 				idx++;
-				g++;
 			}
 		}
 	}
-
 
 	model_t cube_model;
 
