@@ -12,8 +12,7 @@
 #include <iopcontrol.h>
 #include <iopheap.h>
 
-#define CGLTF_IMPLEMENTATION
-#include "cgltf.h"
+#include <fast_obj.h>
 
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
@@ -75,41 +74,6 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	pad_data_t pad;
 	read_pad(game, 0, 0, &pad);
 
-	prim_t prim;
-	
-	prim.type = PRIM_TRIANGLE;
-	prim.shading = PRIM_SHADE_GOURAUD;
-	prim.mapping = DRAW_DISABLE;
-	prim.fogging = DRAW_DISABLE;
-	prim.blending = DRAW_DISABLE;
-	prim.antialiasing = DRAW_ENABLE;
-	prim.mapping_type = PRIM_MAP_ST;
-	prim.colorfix = PRIM_UNFIXED;
-
-	rect_t rect;
-	rect.v0.x = 0.0f;
-	rect.v0.y = 0.0f;
-	rect.v0.z = -1;
-
-	rect.v1.x = -500.0f;
-	rect.v1.y = -500.0f;
-	rect.v1.z = -1;
-
-	rect.color.r = 255;
-	rect.color.g = 255;
-	rect.color.b = 255;
-	rect.color.a = 255;
-	rect.color.q = 1.0f;
-
-	qword_t *dmatag = q;
-	q++;
-
-	draw_disable_blending();
-	q = draw_rect_filled(q, 0, &rect);
-	draw_enable_blending();
-
-	DMATAG_CNT(dmatag,q-dmatag-1,0,0,0);
-
 	if(pad.button_status.rjoy_h > 240) {
 		game->camera.camera_rotation[1] -= 1 * game->delta_time;
 	}
@@ -129,9 +93,6 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	static VECTOR pos = {0,0,0,0};
 	static VECTOR rot = {0,0,0,0};	
 	
-	//rot[0] += 1.0f * game->delta_time;
-	//rot[1] += 1.0f * game->delta_time;
-
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, 0);
 	
 	pos[0] = 40;
@@ -196,6 +157,35 @@ int main(int argc, char *argv[]) {
 
 	init_render_context(&game.context);
 
+	VECTOR verts[24];
+	int points[24];
+
+	fastObjMesh* mesh = fast_obj_read("CUBE.OBJ");
+	int index_buffer_size = mesh->face_count * 2 * 3;
+	for(int i = 0; i < index_buffer_size; i++) {
+		
+	}
+	for(int i = 0; i < mesh->group_count; i++) {
+		fastObjGroup grp = mesh->groups[i];
+		int idx = 0;
+		for(int j = 0; j < grp.face_count; j++) {
+			int fv = mesh->face_vertices[grp.face_offset + j];
+			for(int k = 0; k < fv; k++) {
+				fastObjIndex mi = mesh->indices[grp.index_offset + idx];
+				if(mi.p) {
+					//verts[k][0] = mesh->positions[3 * mi.p + 0]; 
+					//verts[k][1] = mesh->positions[3 * mi.p + 1]; 
+					//verts[k][2] = mesh->positions[3 * mi.p + 2];
+					//verts[k][3] = 1.0f;
+
+					//printf("%i\n", k);
+				}
+				idx++;
+			}
+		}
+	}
+
+
 	model_t cube_model;
 
 	cube_model.point_count = points_count_cube;
@@ -252,7 +242,6 @@ int main(int argc, char *argv[]) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
 		
-		// qword and dmatag for rendering
 		qword_t *q = 0;
 
 		q = begin_render(q, &game, game.frame_buffer, &game.z_buffer);

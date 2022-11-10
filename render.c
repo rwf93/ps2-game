@@ -56,12 +56,12 @@
 
 void init_gs(INIT_GS_PARAMS)
 {
-	// Define a 32-bit 640x512 framebuffer.
+	// defines our framebuffers
 	frame->width = FB_WIDTH;
 	frame->height = FB_HEIGHT;
 	frame->mask = 0;
 	frame->psm = GS_PSM_32;
-	frame->address = graph_vram_allocate(frame->width,frame->height, frame->psm, GRAPH_ALIGN_PAGE);
+	frame->address = graph_vram_allocate(frame->width, frame->height, frame->psm, GRAPH_ALIGN_PAGE);
 	
 	frame++;
 
@@ -69,19 +69,17 @@ void init_gs(INIT_GS_PARAMS)
 	frame->height = FB_HEIGHT;
 	frame->mask = 0;
 	frame->psm = GS_PSM_32;
-
-	// Allocate some vram for our framebuffer.
-	frame->address = graph_vram_allocate(frame->width,frame->height, frame->psm, GRAPH_ALIGN_PAGE);
+	frame->address = graph_vram_allocate(frame->width, frame->height, frame->psm, GRAPH_ALIGN_PAGE);
 	
 	// Enable the zbuffer.
 	z->enable = DRAW_ENABLE;
 	z->mask = 0;
 	z->method = ZTEST_METHOD_GREATER_EQUAL;
 	z->zsm = GS_ZBUF_32;
-	z->address = graph_vram_allocate(frame->width,frame->height,z->zsm, GRAPH_ALIGN_PAGE);
+	z->address = graph_vram_allocate(frame->width, frame->height,z->zsm, GRAPH_ALIGN_PAGE);
 
 	// Initialize the screen and tie the first framebuffer to the read circuits.
-	graph_initialize(frame->address,frame->width,frame->height,frame->psm,0,0);
+	graph_initialize(frame->address, frame->width, frame->height, frame->psm,0,0);
 }
 
 void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
@@ -90,7 +88,7 @@ void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 	qword_t *q = packet->data;
 
 	q = draw_setup_environment(q,0,frame,z);
-	q = draw_primitive_xyoffset(q,0,(2048-320),(2048-256));
+	q = draw_primitive_xyoffset(q,0,(2048-(FB_WIDTH/2)),(2048-(FB_HEIGHT/2)));
 	q = draw_finish(q);
 
 	dma_channel_send_normal(DMA_CHANNEL_GIF,packet->data,q - packet->data, 0, 0);
@@ -100,7 +98,7 @@ void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 }
 
 qword_t *draw_model(DRAW_MODEL_PARAMS) {
-	qword_t *dmatag;
+	
 	
 	MATRIX local_light;
 	MATRIX local_world;
@@ -108,9 +106,8 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 
 	MATRIX local_screen;
 
-	dmatag = q;
+	qword_t *dmatag = q;
 	q++;
-
 
 	create_local_world(local_world, position, rotation);
 	create_local_light(local_light, rotation);	
@@ -189,7 +186,7 @@ qword_t *begin_render(BEGIN_RENDER_PARAMS) {
 	q++;
 
 	q = draw_disable_tests(q,0,z);
-	q = draw_clear(q,0,2048.0f-320.0f,2048.0f-256.0f,frame->width,frame->height,0x00,0x00,0x00);
+	q = draw_clear(q,0,2048.0f-(FB_WIDTH/2),2048.0f-(FB_HEIGHT/2),frame->width,frame->height,0x00,0x00,0x00);
 	q = draw_enable_tests(q,0, z);
 
 	DMATAG_CNT(dmatag,q-dmatag - 1,0,0,0);
