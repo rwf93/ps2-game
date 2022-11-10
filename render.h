@@ -55,7 +55,7 @@ typedef struct camera {
 #define INIT_RENDER_CONTEXT render_context_t *context
 #define END_RENDER_CONTEXT INIT_RENDER_CONTEXT // basic for now...
 
-#define BEGIN_RENDER_PARAMS qword_t *q, qword_t *dmatag, game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
+#define BEGIN_RENDER_PARAMS qword_t *q, game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 #define END_RENDER_PARAMS BEGIN_RENDER_PARAMS
 
 void init_gs(INIT_GS_PARAMS);

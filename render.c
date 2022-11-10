@@ -185,7 +185,7 @@ qword_t *begin_render(BEGIN_RENDER_PARAMS) {
 	game->context.current = game->context.packets[game->context.context];
 	q = game->context.current->data;
 
-	dmatag = q;
+	qword_t *dmatag = q;
 	q++;
 
 	q = draw_disable_tests(q,0,z);
@@ -210,7 +210,7 @@ void flip_buffers(packet_t *flip, framebuffer_t *frame) {
 }
 
 qword_t *end_render(END_RENDER_PARAMS) {
-	dmatag = q;
+	qword_t *dmatag = q;
 	q++;
 
 	q = draw_finish(q);

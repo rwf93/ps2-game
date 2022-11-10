@@ -16,6 +16,11 @@
         "game.h": "c",
         "pch.h": "c",
         "math.h": "c",
-        "tamtypes.h": "c"
+        "tamtypes.h": "c",
+        "memory.h": "c",
+        "math3d.h": "c",
+        "draw2d.h": "c",
+        "libpad.h": "c",
+        "draw3d.h": "c"
     }
 }

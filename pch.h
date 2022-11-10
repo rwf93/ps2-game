@@ -27,6 +27,7 @@
 #include <graph.h>
 #include <draw.h>
 #include <draw3d.h>
+#include <draw2d.h>
 #include <math3d.h>
 
 #include <libpad.h>

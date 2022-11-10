@@ -75,6 +75,41 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	pad_data_t pad;
 	read_pad(game, 0, 0, &pad);
 
+	prim_t prim;
+	
+	prim.type = PRIM_TRIANGLE;
+	prim.shading = PRIM_SHADE_GOURAUD;
+	prim.mapping = DRAW_DISABLE;
+	prim.fogging = DRAW_DISABLE;
+	prim.blending = DRAW_DISABLE;
+	prim.antialiasing = DRAW_ENABLE;
+	prim.mapping_type = PRIM_MAP_ST;
+	prim.colorfix = PRIM_UNFIXED;
+
+	rect_t rect;
+	rect.v0.x = 0.0f;
+	rect.v0.y = 0.0f;
+	rect.v0.z = -1;
+
+	rect.v1.x = -500.0f;
+	rect.v1.y = -500.0f;
+	rect.v1.z = -1;
+
+	rect.color.r = 255;
+	rect.color.g = 255;
+	rect.color.b = 255;
+	rect.color.a = 255;
+	rect.color.q = 1.0f;
+
+	qword_t *dmatag = q;
+	q++;
+
+	draw_disable_blending();
+	q = draw_rect_filled(q, 0, &rect);
+	draw_enable_blending();
+
+	DMATAG_CNT(dmatag,q-dmatag-1,0,0,0);
+
 	if(pad.button_status.rjoy_h > 240) {
 		game->camera.camera_rotation[1] -= 1 * game->delta_time;
 	}
@@ -131,24 +166,27 @@ void load_modules() {
 	}
 }
 
-#define LOAD_ATTRIBUTE(accesor, numComp, dataType, dstPtr) \
-    { \
-        int n = 0; \
-        dataType *buffer = (dataType *)accesor->buffer_view->buffer->data + accesor->buffer_view->offset/sizeof(dataType) + accesor->offset/sizeof(dataType); \
-        for (int k = 0; k < accesor->count; k++) \
-        {\
-            for (int l = 0; l < numComp; l++) \
-            {\
-                dstPtr[numComp*k + l] = buffer[n + l];\
-            }\
-            n += (int)(accesor->stride/sizeof(dataType));\
-        }\
-	}
+void reset_iop() {
+	SifExitIopHeap();
+    SifLoadFileExit();
+    SifExitRpc();
 
-int main(int argc, char *argv[]) {
-	//// initalize RPC 	
+    SifInitRpc(0);
+
+    while (!SifIopReset("", 0)) {};
+    while (!SifIopSync()) {};
+
+    SifInitRpc(0);
+    SifLoadFileInit();
+    SifInitIopHeap();
+    sbv_patch_enable_lmb();
+    sbv_patch_disable_prefix_check();
+}
+
+int main(int argc, char *argv[]) {	
 	SifInitRpc(0);
 	load_modules();
+	//reset_iop();
 
 	game_globals_t game;		
 	init_gg(&game); // lol
@@ -158,37 +196,10 @@ int main(int argc, char *argv[]) {
 
 	init_render_context(&game.context);
 
-	cgltf_options options = {0};
-	cgltf_data* data = NULL;
-	cgltf_parse_file(&options, "CUBE.GLTF", &data);
-
-	int current_model = 0;
-	
 	model_t cube_model;
 
 	cube_model.point_count = points_count_cube;
 	cube_model.vertex_count = vertex_count_cube;
-
-
-	for(int i = 0; i < data->meshes[current_model].primitives_count; i++) {
-		cgltf_primitive prim = data->meshes[current_model].primitives[i];
-		cgltf_size num_vertex = prim.attributes[0].data->count;
-
-		if(prim.indices != NULL) {
-			cgltf_accessor *attribute = data->meshes[0].primitives[i].indices;
-
-			unsigned int *points = malloc(attribute->count * sizeof(unsigned int));
-
-			for(cgltf_size index = 0; index < attribute->count; index++) {
-				unsigned int point = 0;
-				cgltf_accessor_read_uint(attribute, index, &point, 4);
-				printf("%u", point);
-			}
-
-			free(points);
-
-		}
-	}
 
 	cube_model.points = points_cube;
 	cube_model.vertices = vertices_cube;
@@ -236,20 +247,19 @@ int main(int argc, char *argv[]) {
 
 	create_model(&game, "cube", &cube_model);
 	create_model(&game, "teapot", &teapot_model);
-
+		
 	for(;;) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
 		
 		// qword and dmatag for rendering
 		qword_t *q = 0;
-		qword_t *dmatag = 0;
 
-		q = begin_render(q, dmatag, &game, game.frame_buffer, &game.z_buffer);
-		
+		q = begin_render(q, &game, game.frame_buffer, &game.z_buffer);
+
 		q = render(q, &game);
 
-		q = end_render(q, dmatag, &game, game.frame_buffer, &game.z_buffer);
+		q = end_render(q, &game, game.frame_buffer, &game.z_buffer);
 
 		game.last_time = game.current_time;
 	}
