@@ -13,6 +13,7 @@
 #include <iopheap.h>
 
 #include <fast_obj.h>
+#include <hashmap.h>
 
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
@@ -93,6 +94,10 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	static VECTOR pos = {0,0,0,0};
 	static VECTOR rot = {0,0,0,0};	
 	
+	rot[0] += 1.0f * game->delta_time;
+	rot[1] += 1.0f * game->delta_time;
+	
+
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, 0);
 	
 	pos[0] = 40;
@@ -157,30 +162,40 @@ int main(int argc, char *argv[]) {
 
 	init_render_context(&game.context);
 
-	VECTOR verts[24];
-	int points[24];
+	//int points[36];
+	//VECTOR verts[24];
+ 
 
 	fastObjMesh* mesh = fast_obj_read("CUBE.OBJ");
 	int index_buffer_size = mesh->face_count * 2 * 3;
-	for(int i = 0; i < index_buffer_size; i++) {
-		
-	}
+
+	int *points = malloc(sizeof(int) * index_buffer_size);
+	VECTOR *verts = malloc(sizeof(VECTOR) * mesh->index_count);
+	VECTOR *color = malloc(sizeof(VECTOR) * mesh->index_count);
+	int g = 0;
 	for(int i = 0; i < mesh->group_count; i++) {
 		fastObjGroup grp = mesh->groups[i];
-		int idx = 0;
+		int idx = 0;	
 		for(int j = 0; j < grp.face_count; j++) {
 			int fv = mesh->face_vertices[grp.face_offset + j];
+			
+
 			for(int k = 0; k < fv; k++) {
 				fastObjIndex mi = mesh->indices[grp.index_offset + idx];
-				if(mi.p) {
-					//verts[k][0] = mesh->positions[3 * mi.p + 0]; 
-					//verts[k][1] = mesh->positions[3 * mi.p + 1]; 
-					//verts[k][2] = mesh->positions[3 * mi.p + 2];
-					//verts[k][3] = 1.0f;
 
-					//printf("%i\n", k);
-				}
+				printf("ijk %i %i %i\tidx fv: %i %i\n", i, j, k, idx, fv);
+
+				color[idx][0] = 1.0f;
+				color[idx][1] = 1.0f;
+				color[idx][2] = 1.0f;
+				color[idx][3] = 1.0f;
+				
+				verts[idx][0] = mesh->positions[3 * mi.p + 0]; 
+				verts[idx][1] = mesh->positions[3 * mi.p + 1]; 
+				verts[idx][2] = mesh->positions[3 * mi.p + 2];
+				verts[idx][3] = 1.0f;
 				idx++;
+				g++;
 			}
 		}
 	}
@@ -188,12 +203,12 @@ int main(int argc, char *argv[]) {
 
 	model_t cube_model;
 
-	cube_model.point_count = points_count_cube;
-	cube_model.vertex_count = vertex_count_cube;
+	cube_model.point_count = index_buffer_size;
+	cube_model.vertex_count = mesh->index_count;
 
-	cube_model.points = points_cube;
-	cube_model.vertices = vertices_cube;
-	cube_model.colors = colours_cube;
+	cube_model.points = points;
+	cube_model.vertices = verts;
+	cube_model.colors = color;
 
 	cube_model.prim_data.type = PRIM_TRIANGLE;
 	cube_model.prim_data.shading = PRIM_SHADE_GOURAUD;
