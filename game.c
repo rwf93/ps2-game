@@ -14,6 +14,11 @@
 
 #include <fast_obj.h>
 #include <hashmap.h>
+//stupid texture testing
+#include "assets/prettycube.h"
+#include "assets/flower.c"
+
+extern unsigned char flower[]; //for init of flower textures, modules would make models and textures easier to load
 
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
@@ -47,7 +52,7 @@ void init_gg(INIT_GG_PARAMS) {
 	dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 
-	init_gs(game->frame_buffer, &game->z_buffer);
+	init_gs(game->frame_buffer, &game->z_buffer, &game->tex_buffer);
 	init_drawing_environment(game->frame_buffer, &game->z_buffer);
 
 	camera_t camera;

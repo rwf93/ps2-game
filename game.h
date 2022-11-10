@@ -21,6 +21,8 @@ typedef struct game_globals {
 	
 	framebuffer_t frame_buffer[2];
 	zbuffer_t z_buffer;
+	texbuffer_t tex_buffer;
+
 
 	camera_t camera;
 

@@ -78,6 +78,11 @@ void init_gs(INIT_GS_PARAMS)
 	z->zsm = GS_ZBUF_32;
 	z->address = graph_vram_allocate(frame->width, frame->height,z->zsm, GRAPH_ALIGN_PAGE);
 
+	// Allocate some vram for the texture buffer
+	texbuf->width = 256;
+	texbuf->psm = GS_PSM_24;
+	texbuf->address = graph_vram_allocate(256,256,GS_PSM_24,GRAPH_ALIGN_BLOCK);
+
 	// Initialize the screen and tie the first framebuffer to the read circuits.
 	graph_initialize(frame->address, frame->width, frame->height, frame->psm,0,0);
 }
