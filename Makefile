@@ -26,7 +26,6 @@ reset:
 	ps2client reset
 
 BUILD_THIRDPARTY: $(THIRDPARTY)
-	$(shell thirdparty/openvcl/contrib/masp/configure)
 	make --quiet -C thirdparty/openvcl
 	
 CLEAN_THIRDPARTY:

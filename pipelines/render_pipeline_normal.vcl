@@ -4,7 +4,7 @@
 .init_vf_all
 .init_vi_all
 
-.include "pipelines/vcl_sml.i"
+#include "pipelines/vcl_sml.i"
 
 --enter
 --endenter
