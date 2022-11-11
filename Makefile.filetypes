@@ -7,3 +7,9 @@
 
 %.raw.h: %.raw
 	bin2c $< $@ $(subst /,_,$(subst .,_,$<))
+
+%.vsm: %.vcl
+	$(EE_VCL) $< >> $@
+
+%.o: %.vsm
+	$(EE_DVP) $< -o $@
