@@ -1,6 +1,6 @@
 EE_CFLAGS = -g -I./thirdparty
 
-EE_OBJS = $(THIRDPARTY) game.o render.o pad.o model.o texture.o
+EE_OBJS =  game.o render.o pad.o model.o texture.o
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches
 
 THIRDPARTY = thirdparty/fast_obj.o thirdparty/vec.o
@@ -24,10 +24,11 @@ run: $(EE_BIN)
 reset:
 	ps2client reset
 
-BUILD_THIRDPARTY:	
+BUILD_THIRDPARTY: $(THIRDPARTY)
 	make -C thirdparty/openvcl
 	
 CLEAN_THIRDPARTY:
+	rm -f $(THIRDPARTY)
 	make -C thirdparty/openvcl clean
 
 EE_VCL = thirdparty/openvcl/openvcl
