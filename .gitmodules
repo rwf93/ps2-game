@@ -1,3 +1,6 @@
 [submodule "thirdparty/openvcl"]
 	path = thirdparty/openvcl
 	url = https://github.com/rwf93/openvcl/
+[submodule "thirdparty/vclpp"]
+	path = thirdparty/vclpp
+	url = https://github.com/rwf93/vclpp
