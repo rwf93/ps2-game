@@ -12,7 +12,7 @@ void alloc_texbuf(texbuffer_t *texbuf) {
 }
 
 void load_texbuf(texbuffer_t *texbuf, char *data) {
-    packet_t *packet = packet_init(50,PACKET_NORMAL);
+    packet_t *packet = packet_init(PACKET_SIZE,PACKET_NORMAL);
 
 	qword_t *q;
 
@@ -39,10 +39,10 @@ qword_t *set_texture(SET_TEXTURE_PARAMS) {
     //lod.l = 0;
     //lod.k = 0;
 
-	list->texture->info.width = draw_log2(FB_HEIGHT/2);
-	list->texture->info.height = draw_log2(FB_HEIGHT/2);
-	list->texture->info.components = TEXTURE_COMPONENTS_RGB;
-	list->texture->info.function = TEXTURE_FUNCTION_DECAL;
+	buf->info.width = draw_log2(FB_HEIGHT/2);
+	buf->info.height = draw_log2(FB_HEIGHT/2);
+	buf->info.components = TEXTURE_COMPONENTS_RGB;
+	buf->info.function = TEXTURE_FUNCTION_DECAL;
 
 	//clut.storage_mode = CLUT_STORAGE_MODE1;
 	//clut.start = 0;
@@ -54,7 +54,7 @@ qword_t *set_texture(SET_TEXTURE_PARAMS) {
 	q++;
 
 	q = draw_texture_sampling(q,0,lod);
-	q = draw_texturebuffer(q,0,list->texture,clut);
+	q = draw_texturebuffer(q,0,buf,clut);
 
     DMATAG_CNT(dmatag,q-dmatag-1,0,0,0);
 
@@ -72,11 +72,11 @@ void create_texture(CREATE_TEXTURE_PARAMS) {
     game->textures[game->texture_list_index++] = t_list;
 }
 
-texture_list_t *get_texture(GET_TEXTURE_PARAMS) {
+texbuffer_t *get_texture(GET_TEXTURE_PARAMS) {
     
      for(int i = 0; i < MAX_MODELS*2; i++) {
         if(strcmp(game->textures[i].name, name) == 0) {
-            return &game->textures[i];
+            return game->textures[i].texture;
         }
     }
     

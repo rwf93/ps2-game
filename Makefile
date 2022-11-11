@@ -3,7 +3,7 @@ EE_BIN = game.elf
 EE_ISO = game.iso
 EE_OBJS = game.o render.o pad.o model.o texture.o lib/fast_obj.o 
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches
-EE_PCH = pch.h.gch $(subst .ttf,.ttf.h,$(shell ls assets/*.ttf))
+EE_PCH = pch.h.gch $(subst .ttf,.ttf.h,$(shell ls assets/*.ttf)) $(subst .raw,.raw.h,$(shell ls assets/*.raw))
 
 all: $(EE_PCH) $(EE_ISO)
 #	 $(EE_STRIP) --strip-all $(EE_BIN) 

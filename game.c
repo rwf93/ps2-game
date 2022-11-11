@@ -10,6 +10,7 @@
 
 #include "assets/flower.h"
 #include "assets/skybox.h"
+#include "assets/steamdeck.h"
 
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
@@ -110,7 +111,7 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	lod.l = 0;
 	lod.k = 0;
 
-	q = set_texture(q, game, get_texture(game, "flower"), &clut, &lod);
+	q = set_texture(q, game, get_texture(game, "skybox"), &clut, &lod);
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
 	
 	pos[0] = 40;
@@ -118,7 +119,7 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	pos[2] = 40;
 	pos[3] = 40;
 
-	q = set_texture(q, game, get_texture(game, "skybox"), &clut, &lod);
+	q = set_texture(q, game, get_texture(game, "flower"), &clut, &lod);
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
 
 	pos[0] = 0;
@@ -171,8 +172,9 @@ int main(int argc, char *argv[]) {
 	game_globals_t game;		
 	init_gg(&game); // lol
 	
-	texbuffer_t buf;
-	texbuffer_t buf2;
+	texbuffer_t buf = {0};
+	texbuffer_t buf2 = {0};
+	texbuffer_t buf3 = {0};
 	
 	//clutbuffer_t clut;
 	//lod_t lod;
