@@ -1,4 +1,4 @@
-# where we process types of files
+# where we process files
 %.h.gch: %.h
 	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@	
 

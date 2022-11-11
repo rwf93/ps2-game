@@ -1,20 +1,15 @@
 EE_CFLAGS = -g -I./thirdparty
 EE_BIN = game.elf
 
-ISO = game.iso
-THIRDPARTY = thirdparty/fast_obj.o thirdparty/hashmap.o thirdparty/vec.o
-PRECOMPILED = pch.h.gch $(subst .ttf,.ttf.h,$(shell ls assets/*.ttf)) $(subst .raw,.raw.h,$(shell ls assets/*.raw))
-
-EE_OBJS = game.o render.o pad.o model.o texture.o $(THIRDPARTY)
+EE_OBJS = $(THIRDPARTY) game.o render.o pad.o model.o texture.o 
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches
 
-BUILD_THIRDPARTY:
-	make -C thirdparty/openvcl --silent
+ISO = game.iso
+THIRDPARTY = thirdparty/fast_obj.o thirdparty/vec.o
+PRECOMPILED = pch.h.gch $(subst .ttf,.ttf.h,$(shell ls assets/*.ttf)) $(subst .raw,.raw.h,$(shell ls assets/*.raw))
 
-CLEAN_THIRDPARTY:
-	make -C thirdparty/openvcl clean --silent
-
-all: BUILD_THIRDPARTY $(PRECOMPILED) $(EE_ISO)
+all: BUILD_THIRDPARTY $(PRECOMPILED) $(ISO)
+#	 $(EE_STRIP) --strip-all $(EE_BIN) 
 
 $(ISO): $(EE_BIN)
 	mkisofs -l -o $(ISO) $(EE_BIN) packaged/
@@ -27,6 +22,12 @@ run: $(EE_BIN)
 
 reset:
 	ps2client reset
+
+BUILD_THIRDPARTY:	
+	make -C thirdparty/openvcl
+	
+CLEAN_THIRDPARTY:
+	make -C thirdparty/openvcl clean
 
 include Makefile.pref
 include Makefile.eeglobal

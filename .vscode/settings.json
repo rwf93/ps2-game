@@ -25,6 +25,7 @@
         "hashmap.h": "c",
         "steamdeck.h": "c",
         "texture.raw.h": "c",
-        "ft2build.h": "c"
+        "ft2build.h": "c",
+        "string.h": "c"
     }
 }
