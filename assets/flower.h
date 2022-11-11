@@ -1,5 +1,5 @@
-#ifndef __flower__
-#define __flower__
+#ifndef FLOWER_H
+#define FLOWER_H
 
 unsigned int size_flower = 196608;
 unsigned char flower[] __attribute__((aligned(16))) = {

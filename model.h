@@ -3,6 +3,7 @@
 
 #define MDL_LIGHTING (1 << 0)
 #define MDL_WIREFRAME (1 << 1)
+#define MDL_TEXTURED (1 << 2)
 
 typedef struct model {
 	int point_count;
@@ -12,6 +13,7 @@ typedef struct model {
 	VECTOR *vertices;
 	VECTOR *colors;
 	VECTOR *normals;
+	VECTOR *uv_coords;
 
 	prim_t prim_data;
 	color_t color;

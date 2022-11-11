@@ -17,6 +17,10 @@
 #include <sifrpc.h>
 #include <loadfile.h>
 
+#include <sbv_patches.h>
+#include <iopcontrol.h>
+#include <iopheap.h>
+
 #include <dma_tags.h>
 #include <gif_tags.h>
 #include <gs_psm.h>

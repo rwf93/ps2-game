@@ -24,6 +24,7 @@ typedef struct render_context {
 
 	xyz_t *xyz;
 	color_t *rgbaq;
+	texel_t *st;
 } render_context_t;
 
 typedef struct world_lighting { 
@@ -49,11 +50,11 @@ typedef struct camera {
 
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
 #define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z, texbuffer_t *texbuf
+
 #define DRAW_MODEL_PARAMS qword_t *q, game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation, int flags
 //#define RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 
 #define INIT_RENDER_CONTEXT render_context_t *context
-#define END_RENDER_CONTEXT INIT_RENDER_CONTEXT // basic for now...
 
 #define BEGIN_RENDER_PARAMS qword_t *q, game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 #define END_RENDER_PARAMS BEGIN_RENDER_PARAMS
@@ -63,8 +64,8 @@ void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS);
 // draw a model to the current context
 qword_t *draw_model(DRAW_MODEL_PARAMS); 
 
+
 void init_render_context(INIT_RENDER_CONTEXT);
-void end_render_context(END_RENDER_CONTEXT);
 
 qword_t *begin_render(BEGIN_RENDER_PARAMS);
 qword_t *end_render(END_RENDER_PARAMS);

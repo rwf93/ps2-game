@@ -8,15 +8,7 @@
 #include "assets/cube.h"
 #include "assets/teapot.h"
 
-#include <sbv_patches.h>
-#include <iopcontrol.h>
-#include <iopheap.h>
-
-#include <fast_obj.h>
-#include <hashmap.h>
-//stupid texture testing
-#include "assets/prettycube.h"
-#include "assets/flower.c"
+#include "assets/flower.h"
 
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
@@ -72,6 +64,7 @@ void init_gg(INIT_GG_PARAMS) {
 	create_view_screen(camera.view_screen, graph_aspect_ratio(), camera.left, camera.right, camera.bottom, camera.top, camera.znear, camera.zfar);
 
 	game->camera = camera;
+	
 }
 
 qword_t *render(qword_t *q, game_globals_t *game) {
@@ -100,8 +93,7 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	rot[0] += 1.0f * game->delta_time;
 	rot[1] += 1.0f * game->delta_time;
 	
-
-	q = draw_model(q, game, get_model(game, "cube"), pos, rot, 0);
+	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
 	
 	pos[0] = 40;
 	pos[1] = 40;
@@ -152,6 +144,60 @@ void reset_iop() {
     sbv_patch_disable_prefix_check();
 }
 
+void load_texture(texbuffer_t *texbuf) {
+	packet_t *packet = packet_init(50,PACKET_NORMAL);
+
+	qword_t *q;
+
+	q = packet->data;
+
+	q = draw_texture_transfer(q,flower,FB_HEIGHT/2,FB_HEIGHT/2,GS_PSM_24,texbuf->address,texbuf->width);
+	q = draw_texture_flush(q);
+
+	dma_channel_send_chain(DMA_CHANNEL_GIF,packet->data, q - packet->data, 0,0);
+	dma_wait_fast();
+
+	packet_free(packet);
+}
+
+void setup_texture(texbuffer_t *texbuf) {
+	packet_t *packet = packet_init(10,PACKET_NORMAL);
+
+	qword_t *q = packet->data;
+
+	// Using a texture involves setting up a lot of information.
+	clutbuffer_t clut;
+
+	lod_t lod;
+
+	lod.calculation = LOD_USE_K;
+	lod.max_level = 0;
+	lod.mag_filter = LOD_MAG_NEAREST;
+	lod.min_filter = LOD_MIN_NEAREST;
+	lod.l = 0;
+	lod.k = 0;
+
+	texbuf->info.width = draw_log2(FB_HEIGHT/2);
+	texbuf->info.height = draw_log2(FB_HEIGHT/2);
+	texbuf->info.components = TEXTURE_COMPONENTS_RGB;
+	texbuf->info.function = TEXTURE_FUNCTION_DECAL;
+
+	clut.storage_mode = CLUT_STORAGE_MODE1;
+	clut.start = 0;
+	clut.psm = 0;
+	clut.load_method = CLUT_NO_LOAD;
+	clut.address = 0;
+
+	q = draw_texture_sampling(q,0,&lod);
+	q = draw_texturebuffer(q,0,texbuf,&clut);
+
+	// Now send the packet, no need to wait since it's the first.
+	dma_channel_send_normal(DMA_CHANNEL_GIF,packet->data,q - packet->data, 0, 0);
+	dma_wait_fast();
+
+	packet_free(packet);
+}
+
 int main(int argc, char *argv[]) {	
 	SifInitRpc(0);
 	load_modules();
@@ -160,62 +206,35 @@ int main(int argc, char *argv[]) {
 	game_globals_t game;		
 	init_gg(&game); // lol
 
+	load_texture(&game.tex_buffer);
+	setup_texture(&game.tex_buffer);
+
 	padInit(0);
 	pad_init(&game, 0, 0);
 
+
 	init_render_context(&game.context);
-
-	fastObjMesh* mesh = fast_obj_read("CUBE.OBJ");
-	int index_buffer_size = mesh->face_count * 2 * 3;
-
-	int *points = malloc(sizeof(int) * index_buffer_size);
-	VECTOR *verts = malloc(sizeof(VECTOR) * mesh->index_count);
-	VECTOR *color = malloc(sizeof(VECTOR) * mesh->index_count);
-	
-	for(int i = 0; i < mesh->group_count; i++) {
-		fastObjGroup grp = mesh->groups[i];
-		int idx = 0;	
-		for(int j = 0; j < grp.face_count; j++) {
-			int fv = mesh->face_vertices[grp.face_offset + j];
-			for(int k = 0; k < fv; k++) {
-				fastObjIndex mi = mesh->indices[grp.index_offset + idx];
-
-				points[i] = mi.p - 1;
-
-				color[idx][0] = 1.0f;
-				color[idx][1] = 1.0f;
-				color[idx][2] = 1.0f;
-				color[idx][3] = 1.0f;
-				if(mi.p - 1) {
-		
-					verts[idx][0] = mesh->positions[3 * mi.p + 0]; 
-					verts[idx][1] = mesh->positions[3 * mi.p + 1]; 
-					verts[idx][2] = mesh->positions[3 * mi.p + 2];
-					verts[idx][3] = 1.0f;
-				}
-				idx++;
-			}
-		}
-	}
 
 	model_t cube_model;
 
-	cube_model.point_count = index_buffer_size;
-	cube_model.vertex_count = mesh->index_count;
+	cube_model.point_count = points_count_cube;
+	cube_model.vertex_count = vertex_count_cube;
 
-	cube_model.points = points;
-	cube_model.vertices = verts;
-	cube_model.colors = color;
+	cube_model.points = points_cube;
+	cube_model.vertices = vertices_cube;
+	cube_model.colors = colours_cube;
+	cube_model.normals = NULL;
+	cube_model.uv_coords = coordinates_cube;
 
 	cube_model.prim_data.type = PRIM_TRIANGLE;
 	cube_model.prim_data.shading = PRIM_SHADE_GOURAUD;
-	cube_model.prim_data.mapping = DRAW_DISABLE;
+	cube_model.prim_data.mapping = DRAW_ENABLE;
 	cube_model.prim_data.fogging = DRAW_DISABLE;
-	cube_model.prim_data.blending = DRAW_DISABLE;
-	cube_model.prim_data.antialiasing = DRAW_ENABLE;
+	cube_model.prim_data.blending = DRAW_ENABLE;
+	cube_model.prim_data.antialiasing = DRAW_DISABLE;
 	cube_model.prim_data.mapping_type = PRIM_MAP_ST;
 	cube_model.prim_data.colorfix = PRIM_UNFIXED;
-
+	
 	cube_model.color.r = 0x80;
 	cube_model.color.g = 0x80;
 	cube_model.color.b = 0x80;
@@ -231,6 +250,7 @@ int main(int argc, char *argv[]) {
 	teapot_model.vertices = vertices_teapot;
 	teapot_model.colors = colours_teapot;
 	teapot_model.normals = normals_teapot;
+	teapot_model.uv_coords = NULL;
 
 	teapot_model.prim_data.type = PRIM_TRIANGLE;
 	teapot_model.prim_data.shading = PRIM_SHADE_GOURAUD;
@@ -264,8 +284,6 @@ int main(int argc, char *argv[]) {
 
 		game.last_time = game.current_time;
 	}
-
-	end_render_context(&game.context);
 
 	SleepThread();
 	

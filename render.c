@@ -79,9 +79,9 @@ void init_gs(INIT_GS_PARAMS)
 	z->address = graph_vram_allocate(frame->width, frame->height,z->zsm, GRAPH_ALIGN_PAGE);
 
 	// Allocate some vram for the texture buffer
-	texbuf->width = 256;
+	texbuf->width = FB_HEIGHT / 2;
 	texbuf->psm = GS_PSM_24;
-	texbuf->address = graph_vram_allocate(256,256,GS_PSM_24,GRAPH_ALIGN_BLOCK);
+	texbuf->address = graph_vram_allocate(FB_HEIGHT / 2,FB_HEIGHT / 2,GS_PSM_24,GRAPH_ALIGN_BLOCK);
 
 	// Initialize the screen and tie the first framebuffer to the read circuits.
 	graph_initialize(frame->address, frame->width, frame->height, frame->psm,0,0);
@@ -122,14 +122,14 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	prim_t temp_prim = model->prim_data;
 	VECTOR *temp_colors = model->colors;
 	
-	if((flags & MDL_LIGHTING) > 0) {
+	if(flags & MDL_LIGHTING) {
 		calculate_normals(game->context.shared_normals, model->vertex_count, model->normals, local_light);
 		calculate_lights(game->context.shared_lights, model->vertex_count, game->context.shared_normals, game->lighting.light_position, game->lighting.light_color, game->lighting.light_type, MAX_LIGHTS);
 		calculate_colours(game->context.shared_colors, model->vertex_count, model->colors, game->context.shared_lights);
 		temp_colors = game->context.shared_colors; // really sus
 	}
 
-	if((flags & MDL_WIREFRAME) > 0) {
+	if(flags & MDL_WIREFRAME) {
 		temp_prim.type = PRIM_LINE_STRIP;
 	}
 
@@ -138,8 +138,31 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	draw_convert_xyz(game->context.xyz, 2048, 2048, 32, model->vertex_count, (vertex_f_t*)game->context.shared_verticies);
 	draw_convert_rgbq(game->context.rgbaq, model->vertex_count, (vertex_f_t*)game->context.shared_verticies, (color_f_t*)temp_colors, model->color.a);
 
+	if(flags & MDL_TEXTURED) {
+		draw_convert_st(game->context.st, model->vertex_count, (vertex_f_t*)game->context.shared_verticies, (texel_f_t*)model->uv_coords);
+	}
+	
 	q = draw_prim_start(q, 0, &temp_prim, &model->color);
 
+	if(flags & MDL_TEXTURED) {
+		u64 *dw = (u64*)q;
+		for(int i = 0; i < model->point_count; i++) {
+			*dw++ = game->context.rgbaq[model->points[i]].rgbaq;
+			*dw++ = game->context.st[model->points[i]].uv;
+			*dw++ = game->context.xyz[model->points[i]].xyz;
+		}
+
+		if ((u32)dw % 16) {
+			*dw++ = 0;
+		}
+
+		q = draw_prim_end((qword_t*)dw,3,DRAW_STQ_REGLIST);
+
+		DMATAG_CNT(dmatag,q-dmatag-1,0,0,0);
+
+		return q;
+	}
+	
 	for(int i = 0; i < model->point_count; i++) {
 		q->dw[0] = game->context.rgbaq[model->points[i]].rgbaq;
 		q->dw[1] = game->context.xyz[model->points[i]].xyz;
@@ -168,19 +191,9 @@ void init_render_context(INIT_RENDER_CONTEXT) {
 	
 	context->xyz = ALIGN_VERT_128(xyz_t);
 	context->rgbaq = ALIGN_VERT_128(color_t);
-
+	context->st = ALIGN_VERT_128(texel_t);
+	
 	//memset(context->view_screen, 0, sizeof(MATRIX));
-}
-
-void end_render_context(END_RENDER_CONTEXT) {
-	packet_free(context->flip);
-	packet_free(context->packets[0]);
-	packet_free(context->packets[1]);
-
-	free(context->shared_colors);
-	free(context->shared_lights);
-	free(context->shared_normals);
-	free(context->shared_verticies);
 }
 
 qword_t *begin_render(BEGIN_RENDER_PARAMS) {
