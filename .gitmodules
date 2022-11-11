@@ -1,0 +1,3 @@
+[submodule "thirdparty/openvcl"]
+	path = thirdparty/openvcl
+	url = https://github.com/rwf93/openvcl

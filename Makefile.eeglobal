@@ -89,13 +89,3 @@ $(EE_ERL): $(EE_OBJS)
 $(EE_LIB): $(EE_OBJS)
 	$(DIR_GUARD)
 	$(EE_AR) cru $(EE_LIB) $(EE_OBJS)
-
-# scuffed
-%.h.gch: %.h
-	$(EE_CC) $(EE_CFLAGS) $(EE_INCS) -c $< -o $@	
-
-%.ttf.h: %.ttf
-	bin2c $< $@ $(subst /,_,$(subst .,_,$<))
-
-%.raw.h: %.raw
-	bin2c $< $@ $(subst /,_,$(subst .,_,$<))
