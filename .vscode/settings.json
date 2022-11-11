@@ -27,6 +27,13 @@
         "texture.raw.h": "c",
         "ft2build.h": "c",
         "string.h": "c",
-        "random": "c"
+        "random": "c",
+        "*.tcc": "c",
+        "deque": "c",
+        "list": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "system_error": "c"
     }
 }

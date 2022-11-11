@@ -14,15 +14,13 @@ typedef struct render_context {
 
 	packet2_t *packets[2];
 	packet2_t *current;
-	//packet_t *flip;
-
-	packet_t *shared_packet;
+	packet2_t *flip;
 
 	// shared rendering shit
-	//VECTOR *shared_verticies;
-	//VECTOR *shared_normals;
-	//VECTOR *shared_lights;
-	//VECTOR *shared_colors;
+	VECTOR *shared_verticies;
+	VECTOR *shared_normals;
+	VECTOR *shared_lights;
+	VECTOR *shared_colors;
 
 	xyz_t *xyz;
 	color_t *rgbaq;
@@ -58,7 +56,7 @@ typedef struct camera {
 
 #define INIT_RENDER_CONTEXT render_context_t *context
 
-#define BEGIN_RENDER_PARAMS qword_t *q, game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
+#define BEGIN_RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 #define END_RENDER_PARAMS BEGIN_RENDER_PARAMS
 
 void init_gs(INIT_GS_PARAMS);
@@ -69,8 +67,8 @@ qword_t *draw_model(DRAW_MODEL_PARAMS);
 
 void init_render_context(INIT_RENDER_CONTEXT);
 
-qword_t *begin_render(BEGIN_RENDER_PARAMS);
-qword_t *end_render(END_RENDER_PARAMS);
+void begin_render(BEGIN_RENDER_PARAMS);
+void end_render(END_RENDER_PARAMS);
 
 //int render(RENDER_PARAMS);
 

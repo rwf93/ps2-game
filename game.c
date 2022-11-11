@@ -243,6 +243,12 @@ int main(int argc, char *argv[]) {
 	create_model(&game, "cube", &cube_model);
 	create_model(&game, "teapot", &teapot_model);
 	
+	for(;;) {
+		begin_render(&game, game.frame_buffer, &game.z_buffer);
+		
+		end_render(&game, game.frame_buffer, &game.z_buffer);
+	}
+
 	/*
 	for(;;) {
 		game.current_time = clock();

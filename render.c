@@ -110,11 +110,11 @@ void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 }
 
 qword_t *draw_model(DRAW_MODEL_PARAMS) {
-	packet2_add_float(game->context.shared_packet, 2048.0f);
-	packet2_add_float(game->context.shared_packet, 2048.0f);
-	packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F);
-
-	packet2_add_s32(game->context.shared_packet, model->point_count);
+	//packet2_add_float(game->context.shared_packet, 2048.0f);
+	//packet2_add_float(game->context.shared_packet, 2048.0f);
+	//packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F);
+//
+	//packet2_add_s32(game->context.shared_packet, model->point_count);
 
 	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
 	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
@@ -219,35 +219,36 @@ void enable_doublebuffer() {
 }
 
 void init_render_context(INIT_RENDER_CONTEXT) {
-	context->shared_packet = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->packets[0] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->packets[1] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->flip = packet2_create(4, P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
 
 	upload_microcode();
 	enable_doublebuffer();
 
-	/*
-	//dma_wait_fast();
 	context->context = 0;
-	
-	context->packets[0] = packet_init(PACKET_SIZE, PACKET_NORMAL);
-	context->packets[1] = packet_init(PACKET_SIZE, PACKET_NORMAL);
-	context->flip = packet_init(3, PACKET_UCAB);
-	
+
 	context->shared_verticies = ALIGN_VERT_128(VECTOR);
 	context->shared_normals = ALIGN_VERT_128(VECTOR);
 	context->shared_lights = ALIGN_VERT_128(VECTOR);
 	context->shared_colors = ALIGN_VERT_128(VECTOR);
-	
-	context->xyz = ALIGN_VERT_128(xyz_t);
-	context->rgbaq = ALIGN_VERT_128(color_t);
-	context->st = ALIGN_VERT_128(texel_t);
-	
-	//memset(context->view_screen, 0, sizeof(MATRIX));
-	*/
 }
 
-qword_t *begin_render(BEGIN_RENDER_PARAMS) {
+void begin_render(BEGIN_RENDER_PARAMS) {
+	packet2_t *packet = packet2_create(36, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+
+	packet2_update(packet, draw_disable_tests(packet->next, 0, z));
+	packet2_update(packet, draw_clear(packet->next, 0, 2048.0f - (FB_WIDTH/2), 2048.0f - (FB_HEIGHT / 2), frame->width, frame->height, 0x40, 0x40, 0x40));
+	packet2_update(packet, draw_enable_tests(packet->next, 0, z));
+	packet2_update(packet, draw_finish(packet->next));
+
+	dma_wait_fast();
+	dma_channel_send_packet2(packet, DMA_CHANNEL_GIF, 1);
+
+	packet2_free(packet);
+
+	draw_wait_finish();
+
 	/*
 	game->context.current = game->context.packets[game->context.context];
 	q = game->context.current->data;
@@ -265,7 +266,18 @@ qword_t *begin_render(BEGIN_RENDER_PARAMS) {
 	*/
 }
 
-void flip_buffers(packet_t *flip, framebuffer_t *frame) {
+void flip_buffers(game_globals_t *game, framebuffer_t *frame) {	
+	graph_set_framebuffer_filtered(frame[game->context.context].address,frame[game->context.context].width,frame[game->context.context].psm,0,0);
+	
+	game->context.context ^= game->context.context;
+
+	packet2_update(game->context.flip, draw_framebuffer(game->context.flip->base, 0, &frame[game->context.context]));
+
+	packet2_update(game->context.flip, draw_finish(game->context.flip->next));
+	dma_channel_wait(DMA_CHANNEL_GIF, 0);
+	dma_channel_send_packet2(game->context.flip, DMA_CHANNEL_GIF, 1);
+	draw_wait_finish();
+
 	/*
 	qword_t *q = flip->data;
 
@@ -279,7 +291,9 @@ void flip_buffers(packet_t *flip, framebuffer_t *frame) {
 	*/
 }
 
-qword_t *end_render(END_RENDER_PARAMS) {
+void end_render(END_RENDER_PARAMS) {
+	flip_buffers(game, frame);
+	
 	/*
 	qword_t *dmatag = q;
 	q++;

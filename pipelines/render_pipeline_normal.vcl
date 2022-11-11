@@ -4,8 +4,6 @@
 .init_vf_all
 .init_vi_all
 
-#include "pipelines/vcl_sml.i"
-
 --enter
 --endenter
 
@@ -22,9 +20,9 @@
 
     lq gif_set_tag, 1(ibase)
     lq tex_gif_tag1, 2(ibase)
-    lq tex_gif_tag2, 2(ibase)
+    lq tex_gif_tag2, 3(ibase)
     lq prim_tag, 4(ibase)
-    lq rgba, 5(ibase)
+    lq rgba, 5(ibase) ; q is stored in ST when passed into VU1
 
     iaddiu vertex_data, ibase, 6
     ilw.w vert_count, 0(ibase)
@@ -48,8 +46,8 @@
         mul acc, matrix_row_2, vertex[z]
         mul vertex, matrix_row_3, vertex[w]
         
+        ; frustum culling
         clipw.xyz vertex, vertex
-    
         fcand vi01, 0x3FFFF
         iaddiu iadc, vi01, 0x7FFF
 

@@ -1,6 +1,6 @@
 EE_CFLAGS = -g -I./thirdparty
 
-EE_OBJS =  game.o render.o $(PIPELINES) pad.o model.o texture.o
+EE_OBJS =  game.o render.o pad.o model.o texture.o $(PIPELINES)
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches -lpacket2
 
 THIRDPARTY = thirdparty/fast_obj.o thirdparty/vec.o
@@ -26,10 +26,12 @@ reset:
 	ps2client reset
 
 BUILD_THIRDPARTY: $(THIRDPARTY)
+	make --quiet -C thirdparty/vclpp
 	make --quiet -C thirdparty/openvcl
 	
 CLEAN_THIRDPARTY:
 	rm -f $(THIRDPARTY)
+	# make --quiet -C thirdparty/vclpp clean
 	# make --quiet -C thirdparty/openvcl clean
 
 EE_VCL = thirdparty/openvcl/openvcl
