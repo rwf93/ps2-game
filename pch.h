@@ -8,6 +8,7 @@
 #include <memory.h>
 #include <math.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include <debug.h>
 
@@ -36,9 +37,12 @@
 
 #include <libpad.h>
 
-
 // ports
 #include <ft2build.h>
 #include <freetype/freetype.h>
+
+#include <fast_obj.h>
+
+#include <hashmap.h>
 
 #endif

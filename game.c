@@ -165,6 +165,11 @@ void reset_iop() {
     sbv_patch_disable_prefix_check();
 }
 
+struct vtx {
+	VECTOR vtx;
+	int i_vtx;
+};
+
 int main(int argc, char *argv[]) {	
 	SifInitRpc(0);
 	load_modules();
@@ -183,6 +188,28 @@ int main(int argc, char *argv[]) {
 	pad_init(&game, 0, 0);
 
 	init_render_context(&game.context);
+
+	fastObjMesh* mesh = fast_obj_read("CUBE.OBJ");
+
+	u32 points[36] = {0};
+	VECTOR verts[24] = {0};
+
+	for(u32 i = 0; i < mesh->group_count; i++) {
+		fastObjGroup grp = mesh->groups[i];
+		int idx = 0;
+		for(u32 j = 0; j < grp.face_count; j++) {
+			u32 fv = mesh->face_vertices[grp.face_offset + j];
+			for(u32 k = 0; k < fv; k++) {
+				fastObjIndex mi = mesh->indices[grp.index_offset + idx];
+
+				idx++;
+			}
+		}
+	}
+
+	for(int i = 0; i < 36; i++) {
+		printf("points[%i] = %i\n", i, points[i]);
+	}
 
 	model_t cube_model;
 	

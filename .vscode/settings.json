@@ -24,6 +24,7 @@
         "draw3d.h": "c",
         "hashmap.h": "c",
         "steamdeck.h": "c",
-        "texture.raw.h": "c"
+        "texture.raw.h": "c",
+        "ft2build.h": "c"
     }
 }

@@ -12,7 +12,7 @@ void alloc_texbuf(texbuffer_t *texbuf) {
 }
 
 void load_texbuf(texbuffer_t *texbuf, char *data) {
-    packet_t *packet = packet_init(PACKET_SIZE,PACKET_NORMAL);
+    packet_t *packet = packet_init(50,PACKET_NORMAL);
 
 	qword_t *q;
 
@@ -56,11 +56,10 @@ void create_texture(CREATE_TEXTURE_PARAMS) {
 }
 
 texbuffer_t *get_texture(GET_TEXTURE_PARAMS) {
-     for(int i = 0; i < MAX_MODELS*2; i++) {
+    for(int i = 0; i < MAX_MODELS*2; i++) {
         if(strcmp(game->textures[i].name, name) == 0) {
             return game->textures[i].texture;
         }
     }
-
     return NULL;
 }
