@@ -25,11 +25,9 @@ typedef struct model_list {
 } model_list_t;
 
 #define CREATE_MODEL_PARAMS game_globals_t *game, char* name, model_t *model
-#define REMOVE_MODEL_PARAMS game_globals_t *game, char *name
-#define GET_MODEL_PARAMS REMOVE_MODEL_PARAMS
+#define GET_MODEL_PARAMS game_globals_t *game, char *name
 
 void create_model(CREATE_MODEL_PARAMS);
-void remove_model(REMOVE_MODEL_PARAMS);
 model_t *get_model(GET_MODEL_PARAMS);
 
 #endif

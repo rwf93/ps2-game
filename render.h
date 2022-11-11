@@ -49,7 +49,7 @@ typedef struct camera {
 } camera_t;
 
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
-#define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z, texbuffer_t *texbuf
+#define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z
 
 #define DRAW_MODEL_PARAMS qword_t *q, game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation, int flags
 //#define RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z

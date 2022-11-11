@@ -9,6 +9,7 @@
 #include "assets/teapot.h"
 
 #include "assets/flower.h"
+#include "assets/skybox.h"
 
 void init_gg(INIT_GG_PARAMS) {
 	VECTOR light_direction[4] = {
@@ -42,7 +43,7 @@ void init_gg(INIT_GG_PARAMS) {
 	dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
 
-	init_gs(game->frame_buffer, &game->z_buffer, &game->tex_buffer);
+	init_gs(game->frame_buffer, &game->z_buffer);
 	init_drawing_environment(game->frame_buffer, &game->z_buffer);
 
 	camera_t camera;
@@ -93,6 +94,23 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	rot[0] += 1.0f * game->delta_time;
 	rot[1] += 1.0f * game->delta_time;
 	
+	clutbuffer_t clut;
+	lod_t lod;
+
+	clut.storage_mode = CLUT_STORAGE_MODE1;
+	clut.start = 0;
+	clut.psm = 0;
+	clut.load_method = CLUT_NO_LOAD;
+	clut.address = 0;
+
+	lod.calculation = LOD_USE_K;
+	lod.max_level = 0;
+	lod.mag_filter = LOD_MAG_NEAREST;
+	lod.min_filter = LOD_MIN_NEAREST;
+	lod.l = 0;
+	lod.k = 0;
+
+	q = set_texture(q, game, get_texture(game, "flower"), &clut, &lod);
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
 	
 	pos[0] = 40;
@@ -100,7 +118,8 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	pos[2] = 40;
 	pos[3] = 40;
 
-	q = draw_model(q, game, get_model(game, "teapot"), pos, rot, MDL_LIGHTING);
+	q = set_texture(q, game, get_texture(game, "skybox"), &clut, &lod);
+	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
 
 	pos[0] = 0;
 	pos[1] = 0;
@@ -144,60 +163,6 @@ void reset_iop() {
     sbv_patch_disable_prefix_check();
 }
 
-void load_texture(texbuffer_t *texbuf) {
-	packet_t *packet = packet_init(50,PACKET_NORMAL);
-
-	qword_t *q;
-
-	q = packet->data;
-
-	q = draw_texture_transfer(q,flower,FB_HEIGHT/2,FB_HEIGHT/2,GS_PSM_24,texbuf->address,texbuf->width);
-	q = draw_texture_flush(q);
-
-	dma_channel_send_chain(DMA_CHANNEL_GIF,packet->data, q - packet->data, 0,0);
-	dma_wait_fast();
-
-	packet_free(packet);
-}
-
-void setup_texture(texbuffer_t *texbuf) {
-	packet_t *packet = packet_init(10,PACKET_NORMAL);
-
-	qword_t *q = packet->data;
-
-	// Using a texture involves setting up a lot of information.
-	clutbuffer_t clut;
-
-	lod_t lod;
-
-	lod.calculation = LOD_USE_K;
-	lod.max_level = 0;
-	lod.mag_filter = LOD_MAG_NEAREST;
-	lod.min_filter = LOD_MIN_NEAREST;
-	lod.l = 0;
-	lod.k = 0;
-
-	texbuf->info.width = draw_log2(FB_HEIGHT/2);
-	texbuf->info.height = draw_log2(FB_HEIGHT/2);
-	texbuf->info.components = TEXTURE_COMPONENTS_RGB;
-	texbuf->info.function = TEXTURE_FUNCTION_DECAL;
-
-	clut.storage_mode = CLUT_STORAGE_MODE1;
-	clut.start = 0;
-	clut.psm = 0;
-	clut.load_method = CLUT_NO_LOAD;
-	clut.address = 0;
-
-	q = draw_texture_sampling(q,0,&lod);
-	q = draw_texturebuffer(q,0,texbuf,&clut);
-
-	// Now send the packet, no need to wait since it's the first.
-	dma_channel_send_normal(DMA_CHANNEL_GIF,packet->data,q - packet->data, 0, 0);
-	dma_wait_fast();
-
-	packet_free(packet);
-}
-
 int main(int argc, char *argv[]) {	
 	SifInitRpc(0);
 	load_modules();
@@ -205,18 +170,36 @@ int main(int argc, char *argv[]) {
 
 	game_globals_t game;		
 	init_gg(&game); // lol
+	
+	texbuffer_t buf;
+	texbuffer_t buf2;
+	
+	//clutbuffer_t clut;
+	//lod_t lod;
+//
+	//clut.storage_mode = CLUT_STORAGE_MODE1;
+	//clut.start = 0;
+	//clut.psm = 0;
+	//clut.load_method = CLUT_NO_LOAD;
+	//clut.address = 0;
+//
+	//lod.calculation = LOD_USE_K;
+	//lod.max_level = 0;
+	//lod.mag_filter = LOD_MAG_NEAREST;
+	//lod.min_filter = LOD_MIN_NEAREST;
+	//lod.l = 0;
+	//lod.k = 0;
 
-	load_texture(&game.tex_buffer);
-	setup_texture(&game.tex_buffer);
+	create_texture(&game, "flower", flower, &buf);
+	create_texture(&game, "skybox", skybox, &buf2);
 
 	padInit(0);
 	pad_init(&game, 0, 0);
 
-
 	init_render_context(&game.context);
 
 	model_t cube_model;
-
+	
 	cube_model.point_count = points_count_cube;
 	cube_model.vertex_count = vertex_count_cube;
 

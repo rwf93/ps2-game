@@ -11,10 +11,6 @@ void create_model(CREATE_MODEL_PARAMS) {
 
     game->models[game->model_list_index] = m_list;
     game->model_list_index++;
-}
-
-void remove_model(REMOVE_MODEL_PARAMS) {
-    
 }  
 
 model_t *get_model(GET_MODEL_PARAMS) { 
