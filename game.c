@@ -44,9 +44,12 @@ void init_gg(INIT_GG_PARAMS) {
 	game->last_time = clock();
 
 	// dma shit
-	dma_channel_initialize(DMA_CHANNEL_GIF,NULL,0);
+	dma_channel_initialize(DMA_CHANNEL_GIF, NULL, 0);
+	dma_channel_initialize(DMA_CHANNEL_VIF1, NULL, 0);
 	dma_channel_fast_waits(DMA_CHANNEL_GIF);
+	dma_channel_fast_waits(DMA_CHANNEL_VIF1);
 
+	init_render_context(&game->context);
 	init_gs(game->frame_buffer, &game->z_buffer);
 	init_drawing_environment(game->frame_buffer, &game->z_buffer);
 
@@ -178,13 +181,12 @@ int main(int argc, char *argv[]) {
 	texbuffer_t buf = {0};
 	texbuffer_t buf2 = {0};
 	
-	create_texture(&game, "flower", assets_texture_raw, &buf);
-	create_texture(&game, "doctor", assets_doctor_raw, &buf2); 
+	//create_texture(&game, "flower", assets_texture_raw, &buf);
+	//create_texture(&game, "doctor", assets_doctor_raw, &buf2); 
 
 	padInit(0);
 	pad_init(&game, 0, 0);
 
-	init_render_context(&game.context);
 
 	model_t cube_model;
 	
@@ -240,7 +242,8 @@ int main(int argc, char *argv[]) {
 
 	create_model(&game, "cube", &cube_model);
 	create_model(&game, "teapot", &teapot_model);
-		
+	
+	/*
 	for(;;) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
@@ -255,6 +258,7 @@ int main(int argc, char *argv[]) {
 
 		game.last_time = game.current_time;
 	}
+	*/
 
 	SleepThread();
 	

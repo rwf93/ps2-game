@@ -1,10 +1,11 @@
 EE_CFLAGS = -g -I./thirdparty
 
-EE_OBJS =  game.o render.o render_pipeline.o pad.o model.o texture.o
-EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches
+EE_OBJS =  game.o render.o $(PIPELINES) pad.o model.o texture.o
+EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches -lpacket2
 
 THIRDPARTY = thirdparty/fast_obj.o thirdparty/vec.o
 PRECOMPILED = pch.h.gch $(subst .ttf,.ttf.h,$(shell ls assets/*.ttf)) $(subst .raw,.raw.h,$(shell ls assets/*.raw))
+PIPELINES =  $(subst .vcl,.o,$(shell ls pipelines/*.vcl))
 
 EE_BIN = game.elf
 EE_ISO = game.iso
@@ -25,6 +26,7 @@ reset:
 	ps2client reset
 
 BUILD_THIRDPARTY: $(THIRDPARTY)
+	$(shell thirdparty/openvcl/contrib/masp/configure)
 	make --quiet -C thirdparty/openvcl
 	
 CLEAN_THIRDPARTY:

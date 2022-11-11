@@ -9,7 +9,7 @@
 	bin2c $< $@ $(subst /,_,$(subst .,_,$<))
 
 %.vsm: %.vcl
-	$(EE_VCL) $< > $@
+	$(EE_VCL) --gasp "masp" -g $< > $@
 
 %.o: %.vsm
 	$(EE_DVP) $< -o $@

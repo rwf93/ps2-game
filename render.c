@@ -78,13 +78,23 @@ void init_gs(INIT_GS_PARAMS)
 	z->zsm = GS_ZBUF_32;
 	z->address = graph_vram_allocate(frame->width, frame->height,z->zsm, GRAPH_ALIGN_PAGE);
 
-
 	// Initialize the screen and tie the first framebuffer to the read circuits.
 	graph_initialize(frame->address, frame->width, frame->height, frame->psm,0,0);
 }
 
 void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 {
+	packet2_t *packet = packet2_create(20, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
+
+	packet2_update(packet, draw_setup_environment(packet->next, 0, frame, z));
+	packet2_update(packet, draw_primitive_xyoffset(packet->next, 0, 2048 - (FB_WIDTH / 2),2048 - (FB_HEIGHT / 2)));
+	packet2_update(packet, draw_finish(packet->next));
+
+	dma_channel_send_packet2(packet, DMA_CHANNEL_GIF, 1);
+	dma_wait_fast();
+
+	packet2_free(packet);
+	/*
 	packet_t *packet = packet_init(20,PACKET_NORMAL);
 	qword_t *q = packet->data;
 
@@ -96,11 +106,24 @@ void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 	dma_wait_fast();
 
 	packet_free(packet);
+	*/
 }
 
 qword_t *draw_model(DRAW_MODEL_PARAMS) {
+	packet2_add_float(game->context.shared_packet, 2048.0f);
+	packet2_add_float(game->context.shared_packet, 2048.0f);
+	packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F);
+
+	packet2_add_s32(game->context.shared_packet, model->point_count);
+
+	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
+	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
+	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
+	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
 	
 	
+	
+	/*
 	MATRIX local_light;
 	MATRIX local_world;
 	MATRIX world_view;
@@ -170,9 +193,40 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	DMATAG_CNT(dmatag,q-dmatag-1,0,0,0);
 
 	return q;
+	*/
 }
-void init_render_context(INIT_RENDER_CONTEXT) {
 
+extern u32 render_pipeline_normal_CodeStart __attribute__((section(".vudata")));
+extern u32 render_pipeline_normal_CodeEnd __attribute__((section(".vudata")));
+
+void upload_microcode() {
+	u32 packet_size = packet2_utils_get_packet_size_for_program(&render_pipeline_normal_CodeStart, &render_pipeline_normal_CodeEnd)+1;
+	packet2_t *packet = packet2_create(packet_size, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	packet2_vif_add_micro_program(packet, 0, &render_pipeline_normal_CodeStart, &render_pipeline_normal_CodeEnd);
+	packet2_utils_vu_add_end_tag(packet);
+	dma_channel_send_packet2(packet, DMA_CHANNEL_VIF1, 1);
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+	packet2_free(packet);
+}
+
+void enable_doublebuffer() {
+	packet2_t *packet = packet2_create(1, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	packet2_utils_vu_add_double_buffer(packet, 8, 496);
+	packet2_utils_vu_add_end_tag(packet);
+	dma_channel_send_packet2(packet, DMA_CHANNEL_VIF1, 1);
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+	packet2_free(packet);
+}
+
+void init_render_context(INIT_RENDER_CONTEXT) {
+	context->shared_packet = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[0] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[1] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+
+	upload_microcode();
+	enable_doublebuffer();
+
+	/*
 	//dma_wait_fast();
 	context->context = 0;
 	
@@ -190,9 +244,11 @@ void init_render_context(INIT_RENDER_CONTEXT) {
 	context->st = ALIGN_VERT_128(texel_t);
 	
 	//memset(context->view_screen, 0, sizeof(MATRIX));
+	*/
 }
 
 qword_t *begin_render(BEGIN_RENDER_PARAMS) {
+	/*
 	game->context.current = game->context.packets[game->context.context];
 	q = game->context.current->data;
 
@@ -206,9 +262,11 @@ qword_t *begin_render(BEGIN_RENDER_PARAMS) {
 	DMATAG_CNT(dmatag,q-dmatag - 1,0,0,0);
 
 	return q;
+	*/
 }
 
 void flip_buffers(packet_t *flip, framebuffer_t *frame) {
+	/*
 	qword_t *q = flip->data;
 
 	q = draw_framebuffer(q,0,frame);
@@ -218,9 +276,11 @@ void flip_buffers(packet_t *flip, framebuffer_t *frame) {
 	dma_channel_send_normal_ucab(DMA_CHANNEL_GIF,flip->data,q - flip->data, 0);
 
 	draw_wait_finish();
+	*/
 }
 
 qword_t *end_render(END_RENDER_PARAMS) {
+	/*
 	qword_t *dmatag = q;
 	q++;
 
@@ -240,6 +300,7 @@ qword_t *end_render(END_RENDER_PARAMS) {
 	flip_buffers(game->context.flip, &frame[game->context.context]);
 
 	return q;
+	*/
 }
 
 /*

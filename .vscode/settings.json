@@ -26,6 +26,7 @@
         "steamdeck.h": "c",
         "texture.raw.h": "c",
         "ft2build.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "random": "c"
     }
 }

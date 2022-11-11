@@ -12,15 +12,17 @@
 typedef struct render_context {
 	int context;
 
-	packet_t *packets[2];
-	packet_t *current;
-	packet_t *flip;
+	packet2_t *packets[2];
+	packet2_t *current;
+	//packet_t *flip;
+
+	packet_t *shared_packet;
 
 	// shared rendering shit
-	VECTOR *shared_verticies;
-	VECTOR *shared_normals;
-	VECTOR *shared_lights;
-	VECTOR *shared_colors;
+	//VECTOR *shared_verticies;
+	//VECTOR *shared_normals;
+	//VECTOR *shared_lights;
+	//VECTOR *shared_colors;
 
 	xyz_t *xyz;
 	color_t *rgbaq;

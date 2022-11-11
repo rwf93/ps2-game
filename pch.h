@@ -26,7 +26,9 @@
 #include <gif_tags.h>
 #include <gs_psm.h>
 
-#include <packet.h>
+//#include <packet.h>
+#include <packet2.h>
+#include <packet2_utils.h>
 #include <dma.h>
 
 #include <graph.h>
