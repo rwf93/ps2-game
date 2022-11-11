@@ -28,27 +28,10 @@ void load_texbuf(texbuffer_t *texbuf, char *data) {
 }
 
 qword_t *set_texture(SET_TEXTURE_PARAMS) {
-    // Using a texture involves setting up a lot of information.
-	//clutbuffer_t clut;
-	//lod_t lod;
-
-    //lod.calculation = LOD_USE_K;
-    //lod.max_level = 0;
-    //lod.mag_filter = LOD_MAG_NEAREST;
-    //lod.min_filter = LOD_MIN_NEAREST;
-    //lod.l = 0;
-    //lod.k = 0;
-
 	buf->info.width = draw_log2(FB_HEIGHT/2);
 	buf->info.height = draw_log2(FB_HEIGHT/2);
 	buf->info.components = TEXTURE_COMPONENTS_RGB;
 	buf->info.function = TEXTURE_FUNCTION_DECAL;
-
-	//clut.storage_mode = CLUT_STORAGE_MODE1;
-	//clut.start = 0;
-	//clut.psm = 0;
-	//clut.load_method = CLUT_NO_LOAD;
-	//clut.address = 0;
 
     qword_t *dmatag = q;
 	q++;
@@ -73,12 +56,11 @@ void create_texture(CREATE_TEXTURE_PARAMS) {
 }
 
 texbuffer_t *get_texture(GET_TEXTURE_PARAMS) {
-    
      for(int i = 0; i < MAX_MODELS*2; i++) {
         if(strcmp(game->textures[i].name, name) == 0) {
             return game->textures[i].texture;
         }
     }
-    
+
     return NULL;
 }
