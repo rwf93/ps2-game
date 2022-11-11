@@ -244,9 +244,14 @@ int main(int argc, char *argv[]) {
 	create_model(&game, "teapot", &teapot_model);
 	
 	for(;;) {
+		game.current_time = clock();
+		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
+
 		begin_render(&game, game.frame_buffer, &game.z_buffer);
-		
+
 		end_render(&game, game.frame_buffer, &game.z_buffer);
+
+		game.last_time = game.current_time;
 	}
 
 	/*

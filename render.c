@@ -4,56 +4,6 @@
 #include "game.h"
 #include "render.h"
 
-/*
-	model_t cube_model;
-
-	cube_model.point_count = points_count_cube;
-	cube_model.vertex_count = vertex_count_cube;
-
-	cube_model.points = points_cube;
-	cube_model.vertices = vertices_cube;
-	cube_model.colors = colours_cube;
-
-	cube_model.prim_data.type = PRIM_TRIANGLE;
-	cube_model.prim_data.shading = PRIM_SHADE_GOURAUD;
-	cube_model.prim_data.mapping = DRAW_DISABLE;
-	cube_model.prim_data.fogging = DRAW_DISABLE;
-	cube_model.prim_data.blending = DRAW_DISABLE;
-	cube_model.prim_data.antialiasing = DRAW_ENABLE;
-	cube_model.prim_data.mapping_type = PRIM_MAP_ST;
-	cube_model.prim_data.colorfix = PRIM_UNFIXED;
-
-	cube_model.color.r = 0x80;
-	cube_model.color.g = 0x80;
-	cube_model.color.b = 0x80;
-	cube_model.color.a = 0x80;
-	cube_model.color.q = 1.0f;
-
-	model_t teapot_model;
-
-	teapot_model.point_count = points_count_teapot;
-	teapot_model.vertex_count = vertex_count_teapot;
-
-	teapot_model.points = points_teapot;
-	teapot_model.vertices = vertices_teapot;
-	teapot_model.colors = colours_teapot;
-
-	teapot_model.prim_data.type = PRIM_LINE_STRIP;
-	teapot_model.prim_data.shading = PRIM_SHADE_GOURAUD;
-	teapot_model.prim_data.mapping = DRAW_DISABLE;
-	teapot_model.prim_data.fogging = DRAW_DISABLE;
-	teapot_model.prim_data.blending = DRAW_DISABLE;
-	teapot_model.prim_data.antialiasing = DRAW_ENABLE;
-	teapot_model.prim_data.mapping_type = PRIM_MAP_ST;
-	teapot_model.prim_data.colorfix = PRIM_UNFIXED;
-
-	teapot_model.color.r = 0x0;
-	teapot_model.color.g = 0x80;
-	teapot_model.color.b = 0x80;
-	teapot_model.color.a = 0x80;
-	teapot_model.color.q = 1.0f;
-*/
-
 void init_gs(INIT_GS_PARAMS)
 {
 	// defines our framebuffers
@@ -219,8 +169,8 @@ void enable_doublebuffer() {
 }
 
 void init_render_context(INIT_RENDER_CONTEXT) {
-	context->packets[0] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	context->packets[1] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[0] = packet2_create(800, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[1] = packet2_create(800, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->flip = packet2_create(4, P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
 
 	upload_microcode();
@@ -238,7 +188,7 @@ void begin_render(BEGIN_RENDER_PARAMS) {
 	packet2_t *packet = packet2_create(36, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 
 	packet2_update(packet, draw_disable_tests(packet->next, 0, z));
-	packet2_update(packet, draw_clear(packet->next, 0, 2048.0f - (FB_WIDTH/2), 2048.0f - (FB_HEIGHT / 2), frame->width, frame->height, 0x40, 0x40, 0x40));
+	packet2_update(packet, draw_clear(packet->next, 0, 2048.0f - (FB_WIDTH/2), 2048.0f - (FB_HEIGHT / 2), frame->width, frame->height, 0x255, 0x40, 0x40));
 	packet2_update(packet, draw_enable_tests(packet->next, 0, z));
 	packet2_update(packet, draw_finish(packet->next));
 
@@ -292,6 +242,7 @@ void flip_buffers(game_globals_t *game, framebuffer_t *frame) {
 }
 
 void end_render(END_RENDER_PARAMS) {
+	graph_wait_vsync(); // le veesync
 	flip_buffers(game, frame);
 	
 	/*
