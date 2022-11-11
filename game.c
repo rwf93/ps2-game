@@ -9,9 +9,11 @@
 #include "assets/teapot.h"
 
 #include "assets/texture.raw.h"
-
+#include "assets/doctor.raw.h"
 
 void init_gg(INIT_GG_PARAMS) {
+	memset(game, 0, sizeof(game_globals_t)); // im extremely fucking lazy...
+
 	VECTOR light_direction[4] = {
 		{  0.00f,  0.00f,  0.00f, 1.00f },
 		{  1.00f,  0.00f, -1.00f, 1.00f },
@@ -110,14 +112,15 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 	lod.l = 0;
 	lod.k = 0;
 
-	q = set_texture(q, game, get_texture(game, "flower"), &clut, &lod);
+	q = set_texture(q, game, get_texture(game, "doctor"), &clut, &lod);
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
 	
 	pos[0] = 40;
 	pos[1] = 40;
 	pos[2] = 40;
 	pos[3] = 40;
-
+	
+	q = set_texture(q, game, get_texture(game, "flower"), &clut, &lod);
 	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
 
 	pos[0] = 0;
@@ -172,25 +175,9 @@ int main(int argc, char *argv[]) {
 	
 	texbuffer_t buf = {0};
 	texbuffer_t buf2 = {0};
-	texbuffer_t buf3 = {0};
 	
-	//clutbuffer_t clut;
-	//lod_t lod;
-//
-	//clut.storage_mode = CLUT_STORAGE_MODE1;
-	//clut.start = 0;
-	//clut.psm = 0;
-	//clut.load_method = CLUT_NO_LOAD;
-	//clut.address = 0;
-//
-	//lod.calculation = LOD_USE_K;
-	//lod.max_level = 0;
-	//lod.mag_filter = LOD_MAG_NEAREST;
-	//lod.min_filter = LOD_MIN_NEAREST;
-	//lod.l = 0;
-	//lod.k = 0;
-
 	create_texture(&game, "flower", assets_texture_raw, &buf);
+	create_texture(&game, "doctor", assets_doctor_raw, &buf2); 
 
 	padInit(0);
 	pad_init(&game, 0, 0);

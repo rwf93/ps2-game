@@ -200,7 +200,7 @@ qword_t *begin_render(BEGIN_RENDER_PARAMS) {
 	q++;
 
 	q = draw_disable_tests(q,0,z);
-	q = draw_clear(q,0,2048.0f-(FB_WIDTH/2),2048.0f-(FB_HEIGHT/2),frame->width,frame->height,0x00,0x00,0x00);
+	q = draw_clear(q,0,2048.0f-(FB_WIDTH/2),2048.0f-(FB_HEIGHT/2),frame->width,frame->height,0x40,0x40,0x40);
 	q = draw_enable_tests(q,0, z);
 
 	DMATAG_CNT(dmatag,q-dmatag - 1,0,0,0);

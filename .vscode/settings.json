@@ -23,6 +23,7 @@
         "libpad.h": "c",
         "draw3d.h": "c",
         "hashmap.h": "c",
-        "steamdeck.h": "c"
+        "steamdeck.h": "c",
+        "texture.raw.h": "c"
     }
 }
