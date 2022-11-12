@@ -1,9 +1,9 @@
 .name render_pipeline_normal
 #vuprog
-    lq matrix_row_0, 0(VI00)
-    lq matrix_row_1, 1(VI00)
-    lq matrix_row_2, 2(VI00)
-    lq matrix_row_3, 3(VI00)
+    lq matrix_row_0, 0(vi00)
+    lq matrix_row_1, 1(vi00)
+    lq matrix_row_2, 2(vi00)
+    lq matrix_row_3, 3(vi00)
     
     fcset 0x000000
 
@@ -36,8 +36,8 @@
 
         mul acc, matrix_row_0, vertex[x]
         madd acc, matrix_row_1, vertex[y]
-        mul acc, matrix_row_2, vertex[z]
-        mul vertex, matrix_row_3, vertex[w]
+        madd acc, matrix_row_2, vertex[z]
+        madd vertex, matrix_row_3, vertex[w]
         
         ; frustum culling
         clipw.xyz vertex, vertex
@@ -56,7 +56,7 @@
 
         sq modstq, 0(dest_address)
         sq rgba, 1(dest_address)
-        sq vertex, 2(dest_address)
+        sq.xyz vertex, 2(dest_address)
 
         iaddiu vertex_data, vertex_data, 1
         iaddiu stq_data, stq_data, 1

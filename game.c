@@ -237,6 +237,9 @@ int main(int argc, char *argv[]) {
 		static VECTOR pos = {0};
 		static VECTOR rot = {0};
 		
+		rot[0] += 1.0f * game.delta_time;
+		rot[1] += 1.0f * game.delta_time;
+
 		draw_model(&game, &cube_model, pos, rot, 0);
 
 		end_render(&game, game.frame_buffer, &game.z_buffer);

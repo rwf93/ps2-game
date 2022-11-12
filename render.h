@@ -64,9 +64,7 @@ typedef struct camera {
 
 void init_gs(INIT_GS_PARAMS);
 void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS);
-// draw a model to the current context
 void draw_model(DRAW_MODEL_PARAMS); 
-
 
 void init_render_context(INIT_RENDER_CONTEXT);
 

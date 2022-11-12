@@ -67,46 +67,42 @@ void draw_model(DRAW_MODEL_PARAMS) {
 	*/
 
 	for(int i = 0; i < model->point_count; i++) {
-		//game->context.shared_verticies[i][0] = model->vertices[model->points[i]][0];
-		//game->context.shared_verticies[i][1] = model->vertices[model->points[i]][1];
-		//game->context.shared_verticies[i][] = model->vertices[model->points[i]][0];
-		//game->context.shared_verticies[i][0] = model->vertices[model->points[i]][0];
-		
 		for(int j = 0; j < 4; j++) {
 			game->context.shared_verticies[i][j] = model->vertices[model->points[i]][j];
 			game->context.shared_coordinates[i][j] = model->vertices[model->points[i]][j];
 		}
+	}
 
-		MATRIX local_world = {0};
-		MATRIX local_screen = {0};
-		MATRIX world_view = {0};
+	MATRIX local_world = {0};
+	MATRIX local_screen = {0};
+	MATRIX world_view = {0};
 		
-		create_local_world(local_world, position, rotation);
-		create_world_view(world_view, game->camera.camera_position, game->camera.camera_rotation);
-		create_local_screen(local_screen, local_world, world_view, game->camera.view_screen);
+	create_local_world(local_world, position, rotation);
+	create_world_view(world_view, game->camera.camera_position, game->camera.camera_rotation);
+	create_local_screen(local_screen, local_world, world_view, game->camera.view_screen);
 
-		game->context.current = game->context.packets[game->context.context];
-		packet2_reset(game->context.current, 0);
+	game->context.current = game->context.packets[game->context.context];
+	packet2_reset(game->context.current, 0);
 
-		packet2_utils_vu_add_unpack_data(game->context.current, 0, &local_screen, 8, 0);
+	packet2_utils_vu_add_unpack_data(game->context.current, 0, &local_screen, 8, 0);
 
-		u32 vif_added_bytes = 0;
-		packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_packet->base, packet2_get_qw_count(game->context.shared_packet), 1);
-		vif_added_bytes += packet2_get_qw_count(game->context.shared_packet);
+	u32 vif_added_bytes = 0;
+	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_packet->base, packet2_get_qw_count(game->context.shared_packet), 1);
+	vif_added_bytes += packet2_get_qw_count(game->context.shared_packet);
 
-		packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_verticies, model->point_count, 1);
-		vif_added_bytes += model->point_count;
+	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_verticies, model->point_count, 1);
+	vif_added_bytes += model->point_count;
 
-		packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_coordinates, model->point_count, 1);
-		vif_added_bytes += model->point_count;
+	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_coordinates, model->point_count, 1);
+	vif_added_bytes += model->point_count;
 
-		packet2_utils_vu_add_start_program(game->context.current, 0);
-		packet2_utils_vu_add_end_tag(game->context.current);
-		dma_channel_wait(DMA_CHANNEL_VIF1, 0);
-		dma_channel_send_packet2(game->context.current, DMA_CHANNEL_VIF1, 1);		
+	packet2_utils_vu_add_start_program(game->context.current, 0);
+	packet2_utils_vu_add_end_tag(game->context.current);
+	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+	dma_channel_send_packet2(game->context.current, DMA_CHANNEL_VIF1, 1);		
 
 		//game->context.context = !game->context.context;
-	}
+
 
 //
 	//packet2_add_s32(game->context.shared_packet, model->point_count);
