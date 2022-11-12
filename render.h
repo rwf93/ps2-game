@@ -16,11 +16,14 @@ typedef struct render_context {
 	packet2_t *current;
 	packet2_t *flip;
 
+	packet2_t *shared_packet;
+
 	// shared rendering shit
 	VECTOR *shared_verticies;
-	VECTOR *shared_normals;
-	VECTOR *shared_lights;
-	VECTOR *shared_colors;
+	VECTOR *shared_coordinates;
+	//VECTOR *shared_normals;
+	//VECTOR *shared_lights;
+	//VECTOR *shared_colors;
 
 	xyz_t *xyz;
 	color_t *rgbaq;
@@ -51,7 +54,7 @@ typedef struct camera {
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
 #define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z
 
-#define DRAW_MODEL_PARAMS qword_t *q, game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation, int flags
+#define DRAW_MODEL_PARAMS game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation, int flags
 //#define RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 
 #define INIT_RENDER_CONTEXT render_context_t *context
@@ -62,7 +65,7 @@ typedef struct camera {
 void init_gs(INIT_GS_PARAMS);
 void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS);
 // draw a model to the current context
-qword_t *draw_model(DRAW_MODEL_PARAMS); 
+void draw_model(DRAW_MODEL_PARAMS); 
 
 
 void init_render_context(INIT_RENDER_CONTEXT);

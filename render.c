@@ -59,10 +59,55 @@ void init_drawing_environment(INIT_DRAWING_ENVIRONNMENT_PARAMS)
 	*/
 }
 
-qword_t *draw_model(DRAW_MODEL_PARAMS) {
-	//packet2_add_float(game->context.shared_packet, 2048.0f);
-	//packet2_add_float(game->context.shared_packet, 2048.0f);
-	//packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F);
+void draw_model(DRAW_MODEL_PARAMS) {
+	/*
+	packet2_add_float(game->context.shared_packet, 2048.0f);
+	packet2_add_float(game->context.shared_packet, 2048.0f);
+	packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F);
+	*/
+
+	for(int i = 0; i < model->point_count; i++) {
+		//game->context.shared_verticies[i][0] = model->vertices[model->points[i]][0];
+		//game->context.shared_verticies[i][1] = model->vertices[model->points[i]][1];
+		//game->context.shared_verticies[i][] = model->vertices[model->points[i]][0];
+		//game->context.shared_verticies[i][0] = model->vertices[model->points[i]][0];
+		
+		for(int j = 0; j < 4; j++) {
+			game->context.shared_verticies[i][j] = model->vertices[model->points[i]][j];
+			game->context.shared_coordinates[i][j] = model->vertices[model->points[i]][j];
+		}
+
+		MATRIX local_world = {0};
+		MATRIX local_screen = {0};
+		MATRIX world_view = {0};
+		
+		create_local_world(local_world, position, rotation);
+		create_world_view(world_view, game->camera.camera_position, game->camera.camera_rotation);
+		create_local_screen(local_screen, local_world, world_view, game->camera.view_screen);
+
+		game->context.current = game->context.packets[game->context.context];
+		packet2_reset(game->context.current, 0);
+
+		packet2_utils_vu_add_unpack_data(game->context.current, 0, &local_screen, 8, 0);
+
+		u32 vif_added_bytes = 0;
+		packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_packet->base, packet2_get_qw_count(game->context.shared_packet), 1);
+		vif_added_bytes += packet2_get_qw_count(game->context.shared_packet);
+
+		packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_verticies, model->point_count, 1);
+		vif_added_bytes += model->point_count;
+
+		packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_coordinates, model->point_count, 1);
+		vif_added_bytes += model->point_count;
+
+		packet2_utils_vu_add_start_program(game->context.current, 0);
+		packet2_utils_vu_add_end_tag(game->context.current);
+		dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+		dma_channel_send_packet2(game->context.current, DMA_CHANNEL_VIF1, 1);		
+
+		//game->context.context = !game->context.context;
+	}
+
 //
 	//packet2_add_s32(game->context.shared_packet, model->point_count);
 
@@ -70,7 +115,6 @@ qword_t *draw_model(DRAW_MODEL_PARAMS) {
 	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
 	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
 	//packet2_utils_gif_add_set(game->context.shared_packet, 1);
-	
 	
 	
 	/*
@@ -169,8 +213,9 @@ void enable_doublebuffer() {
 }
 
 void init_render_context(INIT_RENDER_CONTEXT) {
-	context->packets[0] = packet2_create(800, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	context->packets[1] = packet2_create(800, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[0] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[1] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->shared_packet = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->flip = packet2_create(4, P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
 
 	upload_microcode();
@@ -179,16 +224,17 @@ void init_render_context(INIT_RENDER_CONTEXT) {
 	context->context = 0;
 
 	context->shared_verticies = ALIGN_VERT_128(VECTOR);
-	context->shared_normals = ALIGN_VERT_128(VECTOR);
-	context->shared_lights = ALIGN_VERT_128(VECTOR);
-	context->shared_colors = ALIGN_VERT_128(VECTOR);
+	context->shared_coordinates = ALIGN_VERT_128(VECTOR);
+	//context->shared_normals = ALIGN_VERT_128(VECTOR);
+	//context->shared_lights = ALIGN_VERT_128(VECTOR);
+	//context->shared_colors = ALIGN_VERT_128(VECTOR);
 }
 
 void begin_render(BEGIN_RENDER_PARAMS) {
 	packet2_t *packet = packet2_create(36, P2_TYPE_NORMAL, P2_MODE_NORMAL, 0);
 
 	packet2_update(packet, draw_disable_tests(packet->next, 0, z));
-	packet2_update(packet, draw_clear(packet->next, 0, 2048.0f - (FB_WIDTH/2), 2048.0f - (FB_HEIGHT / 2), frame->width, frame->height, 0x255, 0x40, 0x40));
+	packet2_update(packet, draw_clear(packet->next, 0, 2048.0f - (FB_WIDTH/2), 2048.0f - (FB_HEIGHT / 2), frame->width, frame->height, 0x40, 0x40, 0x40));
 	packet2_update(packet, draw_enable_tests(packet->next, 0, z));
 	packet2_update(packet, draw_finish(packet->next));
 

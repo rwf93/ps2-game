@@ -1,11 +1,12 @@
 EE_CFLAGS = -g -I./thirdparty
 
-EE_OBJS =  game.o render.o pad.o model.o texture.o $(PIPELINES)
+EE_OBJS = game.o render.o pad.o model.o texture.o
+EE_OBJS += pipelines/render_pipeline_normal.vo
+
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches -lpacket2
 
 THIRDPARTY = thirdparty/fast_obj.o thirdparty/vec.o
 PRECOMPILED = pch.h.gch $(subst .ttf,.ttf.h,$(shell ls assets/*.ttf)) $(subst .raw,.raw.h,$(shell ls assets/*.raw))
-PIPELINES =  $(subst .vcl,.o,$(shell ls pipelines/*.vcl))
 
 EE_BIN = game.elf
 EE_ISO = game.iso
@@ -33,9 +34,6 @@ CLEAN_THIRDPARTY:
 	rm -f $(THIRDPARTY)
 	# make --quiet -C thirdparty/vclpp clean
 	# make --quiet -C thirdparty/openvcl clean
-
-EE_VCL = thirdparty/openvcl/openvcl
-EE_DVP = dvp-as
 
 include Makefile.pref
 include Makefile.eeglobal

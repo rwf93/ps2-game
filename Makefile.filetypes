@@ -8,8 +8,13 @@
 %.raw.h: %.raw
 	bin2c $< $@ $(subst /,_,$(subst .,_,$<))
 
-%.vsm: %.vcl
-	$(EE_VCL) $< -G > $@
 
-%.o: %.vsm
-	$(EE_DVP) $< -o $@
+# VSM generation (scuffed)
+%.pp.vcl: %.vcl
+	thirdparty/vclpp/vclpp $< $@
+
+%.vsm: %.pp.vcl
+	thirdparty/openvcl/openvcl -o $@ $<
+
+%.vo: %.vsm
+	dvp-as $< -o $@

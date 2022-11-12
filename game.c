@@ -95,43 +95,27 @@ qword_t *render(qword_t *q, game_globals_t *game) {
 		game->camera.camera_rotation[0] += 1 * game->delta_time;
 	}
 
-	static VECTOR pos = {0,0,0,0};
-	static VECTOR rot = {0,0,0,0};	
-	
-	rot[0] += 1.0f * game->delta_time;
-	rot[1] += 1.0f * game->delta_time;
-	
-	clutbuffer_t clut;
-	lod_t lod;
-
-	clut.storage_mode = CLUT_STORAGE_MODE1;
-	clut.start = 0;
-	clut.psm = 0;
-	clut.load_method = CLUT_NO_LOAD;
-	clut.address = 0;
-
-	lod.calculation = LOD_USE_K;
-	lod.max_level = 0;
-	lod.mag_filter = LOD_MAG_NEAREST;
-	lod.min_filter = LOD_MIN_NEAREST;
-	lod.l = 0;
-	lod.k = 0;
-
-	q = set_texture(q, game, get_texture(game, "doctor"), &clut, &lod);
-	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
-	
-	pos[0] = 40;
-	pos[1] = 40;
-	pos[2] = 40;
-	pos[3] = 40;
-	
-	q = set_texture(q, game, get_texture(game, "flower"), &clut, &lod);
-	q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
-
-	pos[0] = 0;
-	pos[1] = 0;
-	pos[2] = 0;
-	pos[3] = 0;
+	//static VECTOR pos = {0,0,0,0};
+	//static VECTOR rot = {0,0,0,0};	
+	//
+	//rot[0] += 1.0f * game->delta_time;
+	//rot[1] += 1.0f * game->delta_time;
+	//
+	////q = set_texture(q, game, get_texture(game, "doctor"), &clut, &lod);
+	////q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
+	////
+	////pos[0] = 40;
+	////pos[1] = 40;
+	////pos[2] = 40;
+	////pos[3] = 40;
+	////
+	////q = set_texture(q, game, get_texture(game, "flower"), &clut, &lod);
+	////q = draw_model(q, game, get_model(game, "cube"), pos, rot, MDL_TEXTURED);
+//
+	//pos[0] = 0;
+	//pos[1] = 0;
+	//pos[2] = 0;
+	//pos[3] = 0;
 
 	return q;
 }
@@ -178,9 +162,6 @@ int main(int argc, char *argv[]) {
 	game_globals_t game;		
 	init_gg(&game); // lol
 	
-	texbuffer_t buf = {0};
-	texbuffer_t buf2 = {0};
-	
 	//create_texture(&game, "flower", assets_texture_raw, &buf);
 	//create_texture(&game, "doctor", assets_doctor_raw, &buf2); 
 
@@ -214,40 +195,49 @@ int main(int argc, char *argv[]) {
 	cube_model.color.a = 0x80;
 	cube_model.color.q = 1.0f;
 
-	model_t teapot_model;
+	clutbuffer_t clut;
+	lod_t lod;
 
-	teapot_model.point_count = points_count_teapot;
-	teapot_model.vertex_count = vertex_count_teapot;
+	lod.calculation = LOD_USE_K;
+	lod.max_level = 0;
+	lod.mag_filter = LOD_MAG_NEAREST;
+	lod.min_filter = LOD_MIN_NEAREST;
+	lod.l = 0;
+	lod.k = 0;
 
-	teapot_model.points = points_teapot;
-	teapot_model.vertices = vertices_teapot;
-	teapot_model.colors = colours_teapot;
-	teapot_model.normals = normals_teapot;
-	teapot_model.uv_coords = NULL;
+	clut.storage_mode = CLUT_STORAGE_MODE1;
+	clut.start = 0;
+	clut.psm = 0;
+	clut.load_method = CLUT_NO_LOAD;
+	clut.address = 0;
 
-	teapot_model.prim_data.type = PRIM_TRIANGLE;
-	teapot_model.prim_data.shading = PRIM_SHADE_GOURAUD;
-	teapot_model.prim_data.mapping = DRAW_DISABLE;
-	teapot_model.prim_data.fogging = DRAW_DISABLE;
-	teapot_model.prim_data.blending = DRAW_DISABLE;
-	teapot_model.prim_data.antialiasing = DRAW_ENABLE;
-	teapot_model.prim_data.mapping_type = PRIM_MAP_ST;
-	teapot_model.prim_data.colorfix = PRIM_UNFIXED;
+	texbuffer_t t = {0};
+	t.width = 128;
+	t.psm = GS_PSM_24;
+	t.address = graph_vram_allocate(128, 128, GS_PSM_24, GRAPH_ALIGN_BLOCK);
 
-	teapot_model.color.r = 0x0;
-	teapot_model.color.g = 0x80;
-	teapot_model.color.b = 0x80;
-	teapot_model.color.a = 0x50;
-	teapot_model.color.q = 1.0f;
+	packet2_add_float(game.context.shared_packet, 2048.0F);					  // scale
+	packet2_add_float(game.context.shared_packet, 2048.0F);					  // scale
+	packet2_add_float(game.context.shared_packet, ((float)0xFFFFFF) / 32.0F); // scale
+	packet2_add_s32(game.context.shared_packet, cube_model.point_count);				  // vertex count
+	packet2_utils_gif_add_set(game.context.shared_packet, 1);
+	packet2_utils_gs_add_lod(game.context.shared_packet, &lod);
+	packet2_utils_gs_add_texbuff_clut(game.context.shared_packet, &t, &clut);
+	packet2_utils_gs_add_prim_giftag(game.context.shared_packet, &cube_model.prim_data, cube_model.point_count, DRAW_STQ2_REGLIST, 3, 0);
+	u8 j = 0; // RGBA
+	for (j = 0; j < 4; j++)
+		packet2_add_u32(game.context.shared_packet, 128);
 
-	create_model(&game, "cube", &cube_model);
-	create_model(&game, "teapot", &teapot_model);
-	
 	for(;;) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
 
 		begin_render(&game, game.frame_buffer, &game.z_buffer);
+
+		static VECTOR pos = {0};
+		static VECTOR rot = {0};
+		
+		draw_model(&game, &cube_model, pos, rot, 0);
 
 		end_render(&game, game.frame_buffer, &game.z_buffer);
 
