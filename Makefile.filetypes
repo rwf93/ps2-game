@@ -11,7 +11,7 @@
 
 # VSM generation (scuffed)
 %.pp.vcl: %.vcl
-	thirdparty/vclpp/vclpp $< $@
+	thirdparty/vclpp/vclpp $< $@ -j
 
 %.vsm: %.pp.vcl
 	thirdparty/openvcl/openvcl -o $@ $<

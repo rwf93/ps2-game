@@ -1,16 +1,9 @@
-.syntax new
 .name render_pipeline_normal
-.vu
-.init_vf_all
-.init_vi_all
-
---enter
---endenter
-
-    lq matrix_row_0, 0(vi00)
-    lq matrix_row_1, 1(vi00)
-    lq matrix_row_2, 2(vi00)
-    lq matrix_row_3, 3(vi00)
+#vuprog
+    lq matrix_row_0, 0(VI00)
+    lq matrix_row_1, 1(VI00)
+    lq matrix_row_2, 2(VI00)
+    lq matrix_row_3, 3(VI00)
     
     fcset 0x000000
 
@@ -75,6 +68,4 @@
     --barrier
 
     xgkick kick_address
-
---exit
---endexit
+#endvuprog
