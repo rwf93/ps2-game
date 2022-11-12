@@ -25,6 +25,8 @@ typedef struct render_context {
 	//VECTOR *shared_lights;
 	//VECTOR *shared_colors;
 
+	int vu_programs[4];
+
 	xyz_t *xyz;
 	color_t *rgbaq;
 	texel_t *st;

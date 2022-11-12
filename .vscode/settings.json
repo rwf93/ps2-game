@@ -34,6 +34,9 @@
         "string": "c",
         "unordered_map": "c",
         "vector": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c"
     }
 }

@@ -96,7 +96,7 @@ void draw_model(DRAW_MODEL_PARAMS) {
 	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_coordinates, model->point_count, 1);
 	vif_added_bytes += model->point_count;
 
-	packet2_utils_vu_add_start_program(game->context.current, 0);
+	packet2_utils_vu_add_start_program(game->context.current, game->context.vu_programs[0]);
 	packet2_utils_vu_add_end_tag(game->context.current);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	dma_channel_send_packet2(game->context.current, DMA_CHANNEL_VIF1, 1);		
@@ -189,14 +189,56 @@ void draw_model(DRAW_MODEL_PARAMS) {
 extern u32 render_pipeline_normal_CodeStart __attribute__((section(".vudata")));
 extern u32 render_pipeline_normal_CodeEnd __attribute__((section(".vudata")));
 
-void upload_microcode() {
-	u32 packet_size = packet2_utils_get_packet_size_for_program(&render_pipeline_normal_CodeStart, &render_pipeline_normal_CodeEnd)+1;
+extern u32 render_pipeline_test_CodeStart __attribute__((section(".vudata")));
+extern u32 render_pipeline_test_CodeEnd __attribute__((section(".vudata")));
+
+u32 add_program(u32 *begin, u32 *end, u32 addr) {
+	u32 count = (end - begin) / 2;
+	if(count & 1) count++;
+	
+	u32 packet_size = packet2_utils_get_packet_size_for_program(begin, end)+1;
 	packet2_t *packet = packet2_create(packet_size, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_vif_add_micro_program(packet, 0, &render_pipeline_normal_CodeStart, &render_pipeline_normal_CodeEnd);
+	packet2_vif_add_micro_program(packet, addr, begin, end);
 	packet2_utils_vu_add_end_tag(packet);
 	dma_channel_send_packet2(packet, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
 	packet2_free(packet);
+
+	return count;
+}
+
+void upload_microcode(render_context_t *context) {
+	memset(context->vu_programs, 0, sizeof(int) * 4);
+	
+	int program = 0;
+	int program_size = 0;
+	// start
+	program_size = add_program(&render_pipeline_normal_CodeStart, &render_pipeline_normal_CodeEnd, program);
+	context->vu_programs[0] = program;
+
+	program += program_size;	
+	program_size = add_program(&render_pipeline_test_CodeStart, &render_pipeline_test_CodeEnd, program);
+	context->vu_programs[1] = program;
+
+	
+//
+	//context->vu_programs[1] = program;
+	//program += program_size;	
+
+	//context->vu_programs[0] = program;
+	//program_size = (render_pipeline_normal_CodeStart - render_pipeline_normal_CodeEnd) / 2;
+	//program += packet_size + 1;
+//
+	//packet_size = packet2_utils_get_packet_size_for_program(&render_pipeline_test_CodeStart, &render_pipeline_test_CodeEnd)+1;
+	//packet = packet2_create(packet_size, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	//packet2_vif_add_micro_program(packet, program, &render_pipeline_test_CodeStart, &render_pipeline_test_CodeEnd);
+	//packet2_utils_vu_add_end_tag(packet);
+	//dma_channel_send_packet2(packet, DMA_CHANNEL_VIF1, 1);
+	//dma_channel_wait(DMA_CHANNEL_VIF1, 0);
+	//packet2_free(packet);
+//
+	//context->vu_programs[1] = program;
+	//program += packet_size + 1;
 }
 
 void enable_doublebuffer() {
@@ -214,7 +256,7 @@ void init_render_context(INIT_RENDER_CONTEXT) {
 	context->shared_packet = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->flip = packet2_create(4, P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
 
-	upload_microcode();
+	upload_microcode(context);
 	enable_doublebuffer();
 
 	context->context = 0;

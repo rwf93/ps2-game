@@ -1,7 +1,11 @@
 EE_CFLAGS = -g -I./thirdparty
 
 EE_OBJS = game.o render.o pad.o model.o texture.o
-EE_OBJS += pipelines/render_pipeline_normal.vo
+# VU pipelines
+EE_OBJS += \
+		pipelines/render_pipeline_normal.vo \
+		pipelines/render_pipeline_test.vo
+		
 
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches -lpacket2
 
