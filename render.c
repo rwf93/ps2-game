@@ -69,7 +69,7 @@ void draw_model(DRAW_MODEL_PARAMS) {
 	for(int i = 0; i < model->point_count; i++) {
 		for(int j = 0; j < 4; j++) {
 			game->context.shared_verticies[i][j] = model->vertices[model->points[i]][j];
-			game->context.shared_coordinates[i][j] = model->vertices[model->points[i]][j];
+			game->context.shared_coordinates[i][j] = model->uv_coords[model->points[i]][j];
 		}
 	}
 

@@ -10,6 +10,7 @@
 
 #include "assets/texture.raw.h"
 #include "assets/doctor.raw.h"
+#include "assets/angry.raw.h"
 
 #include <vec.h>
 
@@ -216,6 +217,18 @@ int main(int argc, char *argv[]) {
 	t.psm = GS_PSM_24;
 	t.address = graph_vram_allocate(128, 128, GS_PSM_24, GRAPH_ALIGN_BLOCK);
 
+	t.info.width = draw_log2(128);
+	t.info.height = draw_log2(128);
+	t.info.components = TEXTURE_COMPONENTS_RGB;
+	t.info.function = TEXTURE_FUNCTION_DECAL;
+
+	packet2_t *packet2 = packet2_create(50, P2_TYPE_NORMAL, P2_MODE_CHAIN, 0);
+	packet2_update(packet2, draw_texture_transfer(packet2->next, assets_angry_raw, 128, 128, GS_PSM_24, t.address, t.width));
+	packet2_update(packet2, draw_texture_flush(packet2->next));
+	dma_channel_send_packet2(packet2, DMA_CHANNEL_GIF, 1);
+	dma_wait_fast();
+	packet2_free(packet2);
+
 	packet2_add_float(game.context.shared_packet, 2048.0F);					  // scale
 	packet2_add_float(game.context.shared_packet, 2048.0F);					  // scale
 	packet2_add_float(game.context.shared_packet, ((float)0xFFFFFF) / 32.0F); // scale
@@ -246,23 +259,6 @@ int main(int argc, char *argv[]) {
 
 		game.last_time = game.current_time;
 	}
-
-	/*
-	for(;;) {
-		game.current_time = clock();
-		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
-		
-		qword_t *q = 0;
-
-		q = begin_render(q, &game, game.frame_buffer, &game.z_buffer);
-
-		q = render(q, &game);
-
-		q = end_render(q, &game, game.frame_buffer, &game.z_buffer);
-
-		game.last_time = game.current_time;
-	}
-	*/
 
 	SleepThread();
 	

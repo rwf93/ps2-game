@@ -37,6 +37,7 @@
         "system_error": "c",
         "array": "c",
         "string_view": "c",
-        "initializer_list": "c"
+        "initializer_list": "c",
+        "angry.raw.h": "c"
     }
 }
