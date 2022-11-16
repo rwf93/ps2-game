@@ -229,18 +229,6 @@ int main(int argc, char *argv[]) {
 	dma_wait_fast();
 	packet2_free(packet2);
 
-	packet2_add_float(game.context.shared_packet, 2048.0F);					  // scale
-	packet2_add_float(game.context.shared_packet, 2048.0F);					  // scale
-	packet2_add_float(game.context.shared_packet, ((float)0xFFFFFF) / 32.0F); // scale
-	packet2_add_s32(game.context.shared_packet, cube_model.point_count);				  // vertex count
-	packet2_utils_gif_add_set(game.context.shared_packet, 1);
-	packet2_utils_gs_add_lod(game.context.shared_packet, &lod);
-	packet2_utils_gs_add_texbuff_clut(game.context.shared_packet, &t, &clut);
-	packet2_utils_gs_add_prim_giftag(game.context.shared_packet, &cube_model.prim_data, cube_model.point_count, DRAW_STQ2_REGLIST, 3, 0);
-	u8 j = 0; // RGBA
-	for (j = 0; j < 4; j++)
-		packet2_add_u32(game.context.shared_packet, 128);
-
 	for(;;) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;
@@ -253,7 +241,7 @@ int main(int argc, char *argv[]) {
 		rot[0] += 1.0f * game.delta_time;
 		rot[1] += 1.0f * game.delta_time;
 
-		draw_model(&game, &cube_model, pos, rot, 0);
+		draw_model(&game, &cube_model, &t, &clut, &lod, pos, rot, 0);
 
 		end_render(&game, game.frame_buffer, &game.z_buffer);
 

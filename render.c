@@ -65,6 +65,19 @@ void draw_model(DRAW_MODEL_PARAMS) {
 	packet2_add_float(game->context.shared_packet, 2048.0f);
 	packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F);
 	*/
+	packet2_reset(game->context.shared_packet, 0);
+	packet2_add_float(game->context.shared_packet, 2048.0F);					  // scale
+	packet2_add_float(game->context.shared_packet, 2048.0F);					  // scale
+	packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F); // scale
+	packet2_add_s32(game->context.shared_packet, model->point_count);				  // vertex count
+	packet2_utils_gif_add_set(game->context.shared_packet, 1);
+	packet2_utils_gs_add_lod(game->context.shared_packet, lod);
+	packet2_utils_gs_add_texbuff_clut(game->context.shared_packet, tex, clut);
+	packet2_utils_gs_add_prim_giftag(game->context.shared_packet, &model->prim_data, model->point_count, DRAW_STQ2_REGLIST, 3, 0);
+	u8 j = 0; // RGBA
+	for (j = 0; j < 4; j++) {
+		packet2_add_u32(game->context.shared_packet, 128);
+	}
 
 	for(int i = 0; i < model->point_count; i++) {
 		for(int j = 0; j < 4; j++) {

@@ -56,7 +56,7 @@ typedef struct camera {
 #define INIT_DRAWING_ENVIRONNMENT_PARAMS framebuffer_t *frame, zbuffer_t *z
 #define INIT_GS_PARAMS framebuffer_t *frame, zbuffer_t *z
 
-#define DRAW_MODEL_PARAMS game_globals_t *game, model_t *model, VECTOR position, VECTOR rotation, int flags
+#define DRAW_MODEL_PARAMS game_globals_t *game, model_t *model, texbuffer_t *tex, clutbuffer_t *clut, lod_t *lod, VECTOR position, VECTOR rotation, int flags
 //#define RENDER_PARAMS game_globals_t *game, framebuffer_t *frame, zbuffer_t *z
 
 #define INIT_RENDER_CONTEXT render_context_t *context
