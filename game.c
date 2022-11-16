@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 	pad_init(&game, 0, 0);
 
 
-	model_t cube_model;
+	model_t cube_model = {0};
 	
 	cube_model.point_count = points_count_cube;
 	cube_model.vertex_count = vertex_count_cube;
@@ -178,7 +178,6 @@ int main(int argc, char *argv[]) {
 	cube_model.points = points_cube;
 	cube_model.vertices = vertices_cube;
 	cube_model.colors = colours_cube;
-	cube_model.normals = NULL;
 	cube_model.uv_coords = coordinates_cube;
 
 	cube_model.prim_data.type = PRIM_TRIANGLE;
@@ -196,8 +195,35 @@ int main(int argc, char *argv[]) {
 	cube_model.color.a = 0x80;
 	cube_model.color.q = 1.0f;
 
-	clutbuffer_t clut;
-	lod_t lod;
+	model_t teapot_model = {0};
+
+	teapot_model.point_count = points_count_teapot;
+	teapot_model.vertex_count = vertex_count_cube;
+
+	VECTOR useless_coords[9408] = {0};
+
+	teapot_model.points = points_teapot;
+	teapot_model.vertices = vertices_teapot;
+	teapot_model.colors = colours_teapot;
+	teapot_model.uv_coords = useless_coords;
+
+	teapot_model.prim_data.type = PRIM_TRIANGLE;
+	teapot_model.prim_data.shading = PRIM_SHADE_GOURAUD;
+	teapot_model.prim_data.mapping = DRAW_ENABLE;
+	teapot_model.prim_data.fogging = DRAW_DISABLE;
+	teapot_model.prim_data.blending = DRAW_ENABLE;
+	teapot_model.prim_data.antialiasing = DRAW_DISABLE;
+	teapot_model.prim_data.mapping_type = PRIM_MAP_ST;
+	teapot_model.prim_data.colorfix = PRIM_UNFIXED;
+
+	teapot_model.color.r = 0x80;
+	teapot_model.color.g = 0x80;
+	teapot_model.color.b = 0x80;
+	teapot_model.color.a = 0x80;
+	teapot_model.color.q = 1.0f;
+
+	clutbuffer_t clut = {0};
+	lod_t lod = {0};
 
 	lod.calculation = LOD_USE_K;
 	lod.max_level = 0;

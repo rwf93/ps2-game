@@ -43,7 +43,6 @@
         clipw.xyz vertex, vertex
         fcand vi01, 0x3FFFF
         iaddiu iadc, vi01, 0x7FFF
-
         isw.w iadc, 2(dest_address)
 
         div q, vf00[w], vertex[w]
