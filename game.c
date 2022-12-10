@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
 	t.info.function = TEXTURE_FUNCTION_DECAL;
 
 	packet2_t *packet2 = packet2_create(50, P2_TYPE_NORMAL, P2_MODE_CHAIN, 0);
-	packet2_update(packet2, draw_texture_transfer(packet2->next, image_pixel, 128, 128, GS_PSM_24, t.address, t.width));
+	packet2_update(packet2, draw_texture_transfer(packet2->next, assets_angry_raw, 128, 128, GS_PSM_24, t.address, t.width));
 	packet2_update(packet2, draw_texture_flush(packet2->next));
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();
@@ -274,8 +274,9 @@ int main(int argc, char *argv[]) {
 
 		game.last_time = game.current_time;
 		/*for(int i=1;i<128;i++){
-			malloc(16);
+			void *lag = malloc(16);
 			printf("allocating 16 bytes lol\n"); //don't do this please im begging you
+			free(lag); // make it even worse >:^)
 		}*/
 	}
 

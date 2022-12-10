@@ -16,8 +16,6 @@ typedef struct render_context {
 	packet2_t *current;
 	packet2_t *flip;
 
-	packet2_t *shared_packet;
-
 	// shared rendering shit
 	VECTOR *shared_verticies;
 	VECTOR *shared_coordinates;

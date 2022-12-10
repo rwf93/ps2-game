@@ -65,19 +65,6 @@ void draw_model(DRAW_MODEL_PARAMS) {
 	packet2_add_float(game->context.shared_packet, 2048.0f);
 	packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F);
 	*/
-	packet2_reset(game->context.shared_packet, 0);
-	packet2_add_float(game->context.shared_packet, 2048.0F);					  // scale
-	packet2_add_float(game->context.shared_packet, 2048.0F);					  // scale
-	packet2_add_float(game->context.shared_packet, ((float)0xFFFFFF) / 32.0F); // scale
-	packet2_add_s32(game->context.shared_packet, model->point_count);				  // vertex count
-	packet2_utils_gif_add_set(game->context.shared_packet, 1);
-	packet2_utils_gs_add_lod(game->context.shared_packet, lod);
-	packet2_utils_gs_add_texbuff_clut(game->context.shared_packet, tex, clut);
-	packet2_utils_gs_add_prim_giftag(game->context.shared_packet, &model->prim_data, model->point_count, DRAW_STQ2_REGLIST, 3, 0);
-	u8 j = 0; // RGBA
-	for (j = 0; j < 4; j++) {
-		packet2_add_u32(game->context.shared_packet, 128);
-	}
 
 	for(int i = 0; i < model->point_count; i++) {
 		for(int j = 0; j < 4; j++) {
@@ -85,6 +72,7 @@ void draw_model(DRAW_MODEL_PARAMS) {
 			game->context.shared_coordinates[i][j] = model->uv_coords[model->points[i]][j];
 		}
 	}
+
 
 	MATRIX local_world = {0};
 	MATRIX local_screen = {0};
@@ -96,20 +84,39 @@ void draw_model(DRAW_MODEL_PARAMS) {
 	
 	game->context.current = game->context.packets[game->context.context];
 	packet2_reset(game->context.current, 0);
+	
+	packet2_utils_vu_open_unpack(game->context.current, 0, true);
+	packet2_add_float(game->context.current, 2048.0F);					  // scale
+	packet2_add_float(game->context.current, 2048.0F);					  // scale
+	packet2_add_float(game->context.current, ((float)0xFFFFFF) / 32.0F); // scale
+	packet2_add_s32(game->context.current, model->point_count);				  // vertex count
+	packet2_utils_gif_add_set(game->context.current, 1);
+	packet2_utils_gs_add_lod(game->context.current, lod);
+	packet2_utils_gs_add_texbuff_clut(game->context.current, tex, clut);
+	packet2_utils_gs_add_prim_giftag(game->context.current, &model->prim_data, model->point_count, DRAW_STQ2_REGLIST, 3, 0);
+	u8 j = 0; // RGBA
+	for (j = 0; j < 4; j++) {
+		packet2_add_u32(game->context.current, 128);
+	}
+	packet2_utils_vu_close_unpack(game->context.current);
+
 
 	packet2_utils_vu_add_unpack_data(game->context.current, 0, &local_screen, 8, 0);
 
 	//printf("crash eet\n");
 
-	u32 vif_added_bytes = 0;
-	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_packet->base, packet2_get_qw_count(game->context.shared_packet), 1);
-	//printf("dump eet\n");
-	vif_added_bytes += packet2_get_qw_count(game->context.shared_packet);
-	//printf("pump eet\n");
 
-	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_verticies, model->point_count, 1);
+	u32 vif_added_bytes = 0;
+	//packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_packet->base, packet2_get_qw_count(game->context.shared_packet), 1);
+	////printf("dump eet\n");
+	//vif_added_bytes += packet2_get_qw_count(game->context.shared_packet);
+	////printf("pump eet\n");
+
+	packet2_utils_vu_add_unpack_data(game->context.current, 0x6, game->context.shared_verticies, model->point_count, 1);
 	//printf("smeminem\n"); // ARE YOU READY FOR A MIRACLE
 	vif_added_bytes += model->point_count;
+
+	//printf("%p %p %p\n", game->context.shared_packet->base, (void*)(vif_added_bytes - model->point_count), (void*)vif_added_bytes);
 
 	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_coordinates, model->point_count, 1);
 	vif_added_bytes += model->point_count;
@@ -172,7 +179,7 @@ void enable_doublebuffer() {
 void init_render_context(INIT_RENDER_CONTEXT) {
 	context->packets[0] = packet2_create(MAX_VERTICES, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->packets[1] = packet2_create(MAX_VERTICES, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	context->shared_packet = packet2_create(MAX_VERTICES, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	//context->shared_packet = packet2_create(MAX_VERTICES, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->flip = packet2_create(4, P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
 
 	upload_microcode(context);

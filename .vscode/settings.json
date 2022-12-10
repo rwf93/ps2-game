@@ -38,6 +38,10 @@
         "array": "c",
         "string_view": "c",
         "initializer_list": "c",
-        "angry.raw.h": "c"
+        "angry.raw.h": "c",
+        "compare": "c",
+        "functional": "c",
+        "tuple": "c",
+        "utility": "c"
     }
 }
