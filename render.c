@@ -93,17 +93,22 @@ void draw_model(DRAW_MODEL_PARAMS) {
 	create_local_world(local_world, position, rotation);
 	create_world_view(world_view, game->camera.camera_position, game->camera.camera_rotation);
 	create_local_screen(local_screen, local_world, world_view, game->camera.view_screen);
-
+	
 	game->context.current = game->context.packets[game->context.context];
 	packet2_reset(game->context.current, 0);
 
 	packet2_utils_vu_add_unpack_data(game->context.current, 0, &local_screen, 8, 0);
 
+	//printf("crash eet\n");
+
 	u32 vif_added_bytes = 0;
 	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_packet->base, packet2_get_qw_count(game->context.shared_packet), 1);
+	//printf("dump eet\n");
 	vif_added_bytes += packet2_get_qw_count(game->context.shared_packet);
+	//printf("pump eet\n");
 
 	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_verticies, model->point_count, 1);
+	//printf("smeminem\n"); // ARE YOU READY FOR A MIRACLE
 	vif_added_bytes += model->point_count;
 
 	packet2_utils_vu_add_unpack_data(game->context.current, vif_added_bytes, game->context.shared_coordinates, model->point_count, 1);
@@ -152,8 +157,12 @@ void upload_microcode(render_context_t *context) {
 }
 
 void enable_doublebuffer() {
+	u16 starting_array = 4;
+	u16 buffer_size_max = 1000;
+	u16 buffer_size = (buffer_size_max - starting_array) / 2;
+
 	packet2_t *packet = packet2_create(1, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	packet2_utils_vu_add_double_buffer(packet, 8, 496);
+	packet2_utils_vu_add_double_buffer(packet, starting_array, buffer_size);
 	packet2_utils_vu_add_end_tag(packet);
 	dma_channel_send_packet2(packet, DMA_CHANNEL_VIF1, 1);
 	dma_channel_wait(DMA_CHANNEL_VIF1, 0);
@@ -161,9 +170,9 @@ void enable_doublebuffer() {
 }
 
 void init_render_context(INIT_RENDER_CONTEXT) {
-	context->packets[0] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	context->packets[1] = packet2_create(11, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
-	context->shared_packet = packet2_create(10, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[0] = packet2_create(MAX_VERTICES, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->packets[1] = packet2_create(MAX_VERTICES, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
+	context->shared_packet = packet2_create(MAX_VERTICES, P2_TYPE_NORMAL, P2_MODE_CHAIN, 1);
 	context->flip = packet2_create(4, P2_TYPE_UNCACHED_ACCL, P2_MODE_NORMAL, 0);
 
 	upload_microcode(context);

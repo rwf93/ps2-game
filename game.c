@@ -157,8 +157,8 @@ void reset_iop() {
 
 int main(int argc, char *argv[]) {	
 	SifInitRpc(0);
+	reset_iop();
 	load_modules();
-	//reset_iop();
 
 	game_globals_t game;		
 	init_gg(&game); // lol
@@ -168,7 +168,6 @@ int main(int argc, char *argv[]) {
 
 	padInit(0);
 	pad_init(&game, 0, 0);
-
 
 	model_t cube_model = {0};
 	
@@ -198,7 +197,7 @@ int main(int argc, char *argv[]) {
 	model_t teapot_model = {0};
 
 	teapot_model.point_count = points_count_teapot;
-	teapot_model.vertex_count = vertex_count_cube;
+	teapot_model.vertex_count = vertex_count_teapot;
 
 	VECTOR useless_coords[9408] = {0};
 
@@ -254,7 +253,7 @@ int main(int argc, char *argv[]) {
 	dma_channel_send_packet2(packet2, DMA_CHANNEL_GIF, 1);
 	dma_wait_fast();
 	packet2_free(packet2);
-
+	
 	for(;;) {
 		game.current_time = clock();
 		game.delta_time = (game.current_time - game.last_time) / 1000.0f;

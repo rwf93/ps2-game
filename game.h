@@ -1,6 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
+// add trolle
+
 typedef struct game_globals game_globals_t;
 typedef struct model model_t;
 typedef struct model_list model_list_t;

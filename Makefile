@@ -1,11 +1,12 @@
-EE_CFLAGS = -g -I./thirdparty
+EE_CFLAGS = -g -I./thirdparty -MD
 
 EE_OBJS = game.o render.o pad.o model.o texture.o
+EE_TRACKED_HEADERS := $(EE_OBJS:.o=.d)
 # VU pipelines
 EE_OBJS += \
 		pipelines/render_pipeline_normal.vo \
 		pipelines/render_pipeline_test.vo
-		
+
 
 EE_LIBS = -ldraw -lgraph -lmath3d -lpacket -ldma -lpad -ldebug -lc -lfreetype -lpng -lz -lpatches -lpacket2
 
@@ -22,7 +23,7 @@ $(EE_ISO): $(EE_BIN)
 	mkisofs --quiet -l -o $(EE_ISO) $(EE_BIN) packaged/
 
 clean: CLEAN_THIRDPARTY
-	rm -f $(EE_BIN) $(EE_OBJS) $(PRECOMPILED) $(EE_ISO)
+	rm -f $(EE_BIN) $(EE_OBJS) $(PRECOMPILED) $(EE_ISO) $(EE_TRACKED_HEADERS)
 
 run: $(EE_BIN)
 	ps2client execee host:$(EE_BIN)
@@ -42,3 +43,4 @@ CLEAN_THIRDPARTY:
 include Makefile.pref
 include Makefile.eeglobal
 include Makefile.filetypes
+-include $(EE_TRACKED_HEADERS)

@@ -1,9 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define PACKET_SIZE 40000
-
-#define MAX_VERTICES 65535
+#define MAX_VERTICES 65535 
 #define MAX_MODELS 256
 #define MAX_LIGHTS 4
 #define MAX_PADS 2
